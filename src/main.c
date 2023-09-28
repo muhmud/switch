@@ -36,6 +36,7 @@
 #define Hyper_R 16
 #define Hyper 17
 
+#define CLIENT_REQUEST_SHUTDOWN 0
 #define CLIENT_REQUEST_ADD_APP 1
 #define CLIENT_REQUEST_DELETE_APP 2
 #define CLIENT_REQUEST_ADD_STACK_ITEM 3
@@ -322,7 +323,9 @@ int request_from_str(const char *code) {
 
   request = -1;
   if (code) {
-    if (strcmp(code, "add-app") == 0) {
+    if (strcmp(code, "shutdown") == 0) {
+      request = CLIENT_REQUEST_SHUTDOWN;
+    } else if (strcmp(code, "add-app") == 0) {
       request = CLIENT_REQUEST_ADD_APP;
     } else if (strcmp(code, "delete-app") == 0) {
       request = CLIENT_REQUEST_DELETE_APP;
@@ -566,9 +569,8 @@ int delete_stack_item(const char *app, const char *id) {
   if (item->next == app_data->top) {
     app_data->top->next = NULL;
     app_data->top->prev = NULL;
-  } else if (item == app_data->top &&
-      app_data->top->next &&
-      app_data->top->next->next == app_data->top) {
+  } else if (item == app_data->top && app_data->top->next &&
+             app_data->top->next->next == app_data->top) {
     app_data->top = app_data->top->next;
     app_data->top->next = NULL;
     app_data->top->prev = NULL;
@@ -680,6 +682,8 @@ int process_client_request(struct ClientRequest *request, struct ClientResponse 
   ret = -1;
   pthread_mutex_lock(&keymap_mutex);
   switch (request->request) {
+  case CLIENT_REQUEST_SHUTDOWN:
+    exit(0);
   case CLIENT_REQUEST_ADD_APP:
     app_data = (struct AppData *)malloc(sizeof(struct AppData));
     strncpy(app_data->app, request->app, sizeof(app_data->app));
@@ -821,9 +825,11 @@ int process_request(const char *socket_file, struct ClientRequest *request) {
   if (!socket_file) {
     socket_file = DEFAULT_SOCKET_PATH;
   }
-  if (strlen(request->app) == 0) {
-    fprintf(stderr, "app name not provided\n");
-    return -1;
+  if (request->request != CLIENT_REQUEST_SHUTDOWN) {
+    if (strlen(request->app) == 0) {
+      fprintf(stderr, "app name not provided\n");
+      return -1;
+    }
   }
   switch (request->request) {
   case CLIENT_REQUEST_ADD_APP:
@@ -831,6 +837,7 @@ int process_request(const char *socket_file, struct ClientRequest *request) {
       fprintf(stderr, "invalid mod\n");
       return -1;
     }
+  case CLIENT_REQUEST_SHUTDOWN:
   case CLIENT_REQUEST_DELETE_APP:
   case CLIENT_REQUEST_SWITCH:
   case CLIENT_REQUEST_GET_TOP:
@@ -863,15 +870,18 @@ do_request:
 }
 
 void server_cleanup(int signum) {
-  fprintf(stderr, "cleaning up\n");
   if (server_fd != -1) {
     close(server_fd);
+    server_fd = -1;
   }
   if (sock_file) {
     unlink(sock_file);
+    sock_file = NULL;
   }
   exit(EXIT_SUCCESS);
 }
+
+void exit_cleanup() { server_cleanup(0); }
 
 int start_server(const char *socket_file) {
   Display *display;
@@ -900,6 +910,7 @@ int start_server(const char *socket_file) {
     perror("sigaction");
     return EXIT_FAILURE;
   }
+  atexit(exit_cleanup);
   display = XOpenDisplay(NULL);
   if (display == NULL) {
     fprintf(stderr, "Unable to connect to X server\n");
