@@ -1,11 +1,11 @@
 #ifndef _SWITCH_TEST_SRC_H_
 #define _SWITCH_TEST_SRC_H_
-#include <memory>
 #include <cstdlib>
+#include <memory>
 
 // Source headers
 extern "C" {
-#include "../src/stack.h"
+#include "../stack.h"
 }
 
 // Helper functions

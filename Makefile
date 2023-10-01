@@ -7,7 +7,7 @@ ifneq ($DEBUG,)
 	CFLAGS += -ggdb
 endif
 
-TEST_SRCS := $(shell find test -name "*.cpp")
+TEST_SRCS := $(shell find src/test -name "*.cpp")
 TEST_OBJS := $(TEST_SRCS:cpp=o)
 TEST_LDFLAGS := -lgtest -lgtest_main
 
@@ -17,8 +17,8 @@ switch: $(OBJS)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^ src/main.c
 
 test: $(OBJS) $(TEST_OBJS)
-	@$(CXX) -o $@/$@ $(CFLAGS) $(LDFLAGS) $(TEST_LDFLAGS) $^
-	@$@/$@
+	@$(CXX) -o $@ $(CFLAGS) $(LDFLAGS) $(TEST_LDFLAGS) $^
+	@./$@
 
 clean:
-	$(RM) switch $(OBJS) test/test $(TEST_OBJS)
+	$(RM) switch $(OBJS) test $(TEST_OBJS)
