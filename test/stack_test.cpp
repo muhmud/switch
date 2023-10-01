@@ -1,7 +1,4 @@
-extern "C" {
-#include "../src/stack.h"
-}
-
+#include "src.h"
 #include <gtest/gtest.h>
 
 TEST(StackTest, new_stack_item) {
