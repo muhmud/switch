@@ -3,10 +3,7 @@
 #include <stdlib.h>
 
 int add_item(struct App *app, const char *id) {
-  if (!app) {
-    return -1;
-  }
-  return add_stack_item(app->top, id);
+  return app && add_stack_item(app->top, id) ? 0 : -1;
 }
 
 int set_item(struct App *app, const char *id) {

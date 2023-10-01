@@ -5,6 +5,9 @@
 struct StackItem *new_stack_item(const char *id) {
   struct StackItem *item;
 
+  if (!id || strlen(id) == 0) {
+    return NULL;
+  }
   item = (struct StackItem *)malloc(sizeof(struct StackItem));
   strncpy(item->id, id, sizeof(item->id));
   item->next = NULL;
@@ -12,15 +15,14 @@ struct StackItem *new_stack_item(const char *id) {
   return item;
 }
 
-int add_stack_item(struct StackItem *top, const char *id) {
+struct StackItem *add_stack_item(struct StackItem *top, const char *id) {
   struct StackItem *item;
 
   item = find_stack_item(top, id);
   if (item) {
-    return -1;
+    return NULL;
   }
-  move_to_top_of_stack(top, new_stack_item(id));
-  return 0;
+  return move_to_top_of_stack(top, new_stack_item(id));
 }
 
 struct StackItem *find_stack_item(struct StackItem *top, const char *id) {
@@ -39,9 +41,9 @@ struct StackItem *find_stack_item(struct StackItem *top, const char *id) {
   return NULL;
 }
 
-void move_to_top_of_stack(struct StackItem *top, struct StackItem *item) {
+struct StackItem *move_to_top_of_stack(struct StackItem *top, struct StackItem *item) {
   if (top == item) {
-    return;
+    return item;
   }
   if (item->prev && item->next) {
     item->prev->next = item->next;
@@ -57,6 +59,7 @@ void move_to_top_of_stack(struct StackItem *top, struct StackItem *item) {
   }
   top->prev = item;
   top = item;
+  return item;
 }
 
 int delete_stack_item(struct StackItem *top, const char *id) {

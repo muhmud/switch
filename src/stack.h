@@ -10,9 +10,9 @@ struct StackItem {
 };
 
 struct StackItem *new_stack_item(const char *id);
-int add_stack_item(struct StackItem* top, const char *id);
+struct StackItem *add_stack_item(struct StackItem* top, const char *id);
 struct StackItem *find_stack_item(struct StackItem *top, const char *id);
-void move_to_top_of_stack(struct StackItem *top, struct StackItem *item);
+struct StackItem *move_to_top_of_stack(struct StackItem *top, struct StackItem *item);
 int delete_stack_item(struct StackItem *top, const char *id);
 
 #endif // _SWITCH_STACK_H_
