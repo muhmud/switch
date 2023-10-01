@@ -1,4 +1,4 @@
-SRCS := $(shell find src -name "*.c")
+SRCS := $(shell find src -name "*.c" -not -path "src/main.c")
 OBJS := $(SRCS:c=o)
 CFLAGS := -Wall
 LDFLAGS := -lX11 -lXi
@@ -7,9 +7,18 @@ ifneq ($DEBUG,)
 	CFLAGS += -ggdb
 endif
 
-switch: $(OBJS)
-	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
+TEST_SRCS := $(shell find test -name "*.cpp")
+TEST_OBJS := $(TEST_SRCS:c=o)
+TEST_LDFLAGS := -lgtest -lgtest_main
 
-.PHONY: clean
+.PHONY: clean test
+
+switch: $(OBJS)
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^ src/main.c
+
+test: $(OBJS) $(TEST_OBJS)
+	@$(CXX) -o $@/$@ $(CFLAGS) $(LDFLAGS) $(TEST_LDFLAGS) $^
+	@$@/$@
+
 clean:
-	$(RM) switch $(OBJS)
+	$(RM) switch $(OBJS) test/test $(TEST_OBJS)
