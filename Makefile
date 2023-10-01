@@ -8,7 +8,7 @@ ifneq ($DEBUG,)
 endif
 
 TEST_SRCS := $(shell find test -name "*.cpp")
-TEST_OBJS := $(TEST_SRCS:c=o)
+TEST_OBJS := $(TEST_SRCS:cpp=o)
 TEST_LDFLAGS := -lgtest -lgtest_main
 
 .PHONY: clean test
