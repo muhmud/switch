@@ -11,7 +11,7 @@ TEST_SRCS := $(shell find src/test -name "*.cpp")
 TEST_OBJS := $(TEST_SRCS:cpp=o)
 TEST_LDFLAGS := -lgtest -lgtest_main
 
-.PHONY: clean test
+.PHONY: clean
 
 switch: $(OBJS)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^ src/main.c
