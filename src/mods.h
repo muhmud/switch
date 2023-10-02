@@ -1,6 +1,5 @@
 #ifndef _SWITCH_MODS_H_
 #define _SWITCH_MODS_H_
-#include <X11/Xlib.h>
 
 #define Shift_L 0
 #define Shift_R 1
@@ -27,8 +26,9 @@ struct ModCodes {
 };
 
 struct ModCodes find_modcodes(int modcode);
-int convert_keysym_to_modcode(KeySym keysym);
+int convert_keysym_to_modcode(unsigned long keysym);
 int convert_string_to_modcode(const char *code);
-int is_mod_key(KeySym keysym);
+int is_mod_key(unsigned long keysym);
+int is_valid_mod_key(int modcode);
 
 #endif // _SWITCH_MODS_H_

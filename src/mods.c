@@ -70,7 +70,7 @@ struct ModCodes find_modcodes(int modcode) {
   return modcodes;
 }
 
-int convert_keysym_to_modcode(KeySym keysym) {
+int convert_keysym_to_modcode(unsigned long keysym) {
   int modcode;
 
   modcode = -1;
@@ -161,9 +161,11 @@ int convert_string_to_modcode(const char *code) {
   return modcode;
 }
 
-int is_mod_key(KeySym keysym) {
+int is_mod_key(unsigned long keysym) {
   return (keysym == XK_Shift_L || keysym == XK_Shift_R || keysym == XK_Control_L ||
           keysym == XK_Control_R || keysym == XK_Meta_L || keysym == XK_Meta_R ||
           keysym == XK_Alt_L || keysym == XK_Alt_R || keysym == XK_Super_L ||
           keysym == XK_Super_R || keysym == XK_Hyper_L || keysym == XK_Hyper_R);
 }
+
+int is_valid_mod_key(int modcode) { return modcode >= 0 && modcode <= Hyper ? 1 : 0; }

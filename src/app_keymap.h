@@ -9,6 +9,7 @@ int add_app(const char* app, int modcode);
 struct App *find_app(const char *app);
 struct App *find_app_by_modcode(int modcode);
 int delete_app(const char *app);
+void clear_apps();
 
 int app_keymap_lock();
 int app_keymap_unlock();
