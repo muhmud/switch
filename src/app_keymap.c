@@ -130,6 +130,21 @@ int delete_app(const char *name) {
   return -1;
 }
 
+int restart_app(const char *name) {
+  struct App *app;
+
+  if (empty_string(name)) {
+    return -1;
+  }
+  app = find_app(name);
+  if (!app) {
+    return -1;
+  }
+  delete_stack(app->top);
+  app->top = NULL;
+  return 0;
+}
+
 void clear_apps() {
   struct AppNode *node, *next;
   int i;

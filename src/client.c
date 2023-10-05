@@ -59,6 +59,7 @@ int send_request(const char *socket_file, struct ClientRequest *request,
   case CLIENT_REQUEST_DELETE_APP:
   case CLIENT_REQUEST_SWITCH:
   case CLIENT_REQUEST_GET_TOP:
+  case CLIENT_REQUEST_RESTART_APP:
     goto do_request;
   case CLIENT_REQUEST_SET:
   case CLIENT_REQUEST_ADD_STACK_ITEM:

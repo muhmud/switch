@@ -11,6 +11,7 @@
 #define CLIENT_REQUEST_SWITCH 6
 #define CLIENT_REQUEST_SET 7
 #define CLIENT_REQUEST_GET_TOP 8
+#define CLIENT_REQUEST_RESTART_APP 9
 
 struct ClientRequest {
   int request;

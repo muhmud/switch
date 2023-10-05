@@ -14,6 +14,7 @@ int add_app(const char* app, int modcode);
 struct App* find_app(const char *app);
 struct AppNode *find_apps_by_modcode(int modcode);
 int delete_app(const char *app);
+int restart_app(const char* app);
 void clear_apps();
 
 int app_keymap_lock();

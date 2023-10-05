@@ -95,6 +95,9 @@ static int process_client_request(struct ClientRequest *request, struct ClientRe
       ret = 0;
     }
     break;
+  case CLIENT_REQUEST_RESTART_APP:
+    ret = restart_app(request->app);
+    break;
   }
   app_keymap_unlock();
   return ret;

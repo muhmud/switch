@@ -22,6 +22,8 @@ int convert_string_to_request(const char *code) {
       request = CLIENT_REQUEST_SET;
     } else if (strcmp(code, "top") == 0) {
       request = CLIENT_REQUEST_GET_TOP;
+    } else if (strcmp(code, "restart-app") == 0) {
+      request = CLIENT_REQUEST_RESTART_APP;
     }
   }
   return request;
