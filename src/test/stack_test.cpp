@@ -154,10 +154,10 @@ TEST(StackTest, delete_stack_item) {
   auto bottom = new_stack_item(BOTTOM);
   auto middle = allocate(new_stack_item(MIDDLE));
 
-  EXPECT_EQ(delete_stack_item(bottom, MIDDLE), -1);
+  EXPECT_EQ(delete_stack_item(bottom, MIDDLE), bottom);
 
   move_to_top_of_stack(bottom, middle.get());
-  EXPECT_EQ(delete_stack_item(bottom, BOTTOM), 0);
+  EXPECT_EQ(delete_stack_item(bottom, BOTTOM), middle.get());
   EXPECT_FALSE(middle->prev);
   EXPECT_FALSE(middle->next);
 }
@@ -167,15 +167,15 @@ TEST(StackTest, delete_stack_item_three_items_middle) {
   auto middle = add_stack_item(bottom, MIDDLE);
   auto top = add_stack_item(middle, TOP);
 
-  EXPECT_EQ(delete_stack_item(top, MIDDLE), 0);
+  EXPECT_EQ(delete_stack_item(top, MIDDLE), top);
   EXPECT_EQ(top->next, bottom);
   EXPECT_EQ(top->prev, bottom);
   EXPECT_EQ(bottom->next, top);
   EXPECT_EQ(bottom->prev, top);
 
-  EXPECT_EQ(delete_stack_item(top, TOP), 0);
+  EXPECT_EQ(delete_stack_item(top, TOP), bottom);
   EXPECT_FALSE(bottom->next);
   EXPECT_FALSE(bottom->prev);
 
-  EXPECT_EQ(delete_stack_item(top, BOTTOM), 0);
+  EXPECT_FALSE(delete_stack_item(top, BOTTOM));
 }

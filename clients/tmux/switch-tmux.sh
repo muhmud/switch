@@ -17,7 +17,7 @@ function add_to_list_file() {
   local -r id=$1
   local -r list_file=$2
 
-  if [[ "$(list_file_contains "$id" "$list_file")" == "0" ]]; then
+  if [[ ! -f "$list_file" ]] || [[ "$(list_file_contains "$id" "$list_file")" == "0" ]]; then
     echo "$id" >> "$list_file"
   fi
 }
@@ -26,7 +26,7 @@ function delete_from_list_file() {
   local -r id=$1
   local -r list_file=$2
 
-  if [[ "$(list_file_contains "$id" "$list_file")" != "0" ]]; then
+  if [[ -f "$list_file" ]] || [[ "$(list_file_contains "$id" "$list_file")" != "0" ]]; then
     sed -i "/^${id}\$/d" "$list_file"
   fi
 }
@@ -35,17 +35,19 @@ function align_list_file() {
   local -r list_file=$1
   local -r new_list=$2
 
-  local ids=()
-  while IFS= read -r id; do
-    if [[ "$(grep -c "^$id\$" <<< "$new_list")" == "0" ]]; then
-      ids+=("$id")
-    fi
-  done < "$list_file"
+  if [[ -f "$list_file" ]]; then
+    local ids=()
+    while IFS= read -r id; do
+      if [[ "$(grep -c "^$id\$" <<< "$new_list")" == "0" ]]; then
+        ids+=("$id")
+      fi
+    done < "$list_file"
 
-  for id in "${ids[@]}"; do
-    echo "$id"
-    delete_from_list_file "$id" "$list_file"
-  done
+    for id in "${ids[@]}"; do
+      echo "$id"
+      delete_from_list_file "$id" "$list_file"
+    done
+  fi
 }
 
 function get_session_list() {

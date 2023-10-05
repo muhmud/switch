@@ -14,15 +14,6 @@ static struct App *keymap[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, N
 
 static int empty_string(const char *value) { return !value || strcmp(value, "") == 0 ? 1 : 0; }
 
-static struct App *new_app(const char *name, int modcode) {
-  struct App *app;
-
-  app = (struct App *)malloc(sizeof(struct App));
-  strncpy(app->name, name, sizeof(app->name));
-  app->modcode = modcode;
-  return app;
-}
-
 static int update_keymap(int modcode, struct App *app) {
   if (modcode != -1) {
     if (keymap[modcode]) {
@@ -73,7 +64,7 @@ struct App *find_app_by_modcode(int modcode) { return keymap[modcode]; }
 
 void select_stack_item(struct App *app) {
   if (app->switching_current) {
-    move_to_top_of_stack(app->top, app->switching_current);
+    app->top = move_to_top_of_stack(app->top, app->switching_current);
     app->switching_current = NULL;
   }
 }

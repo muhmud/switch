@@ -13,6 +13,7 @@ struct App {
 
 struct StackItem;
 
+struct App *new_app(const char *name, int modcode);
 int add_item(struct App* app, const char *id);
 int set_item(struct App* app, const char *id);
 int switch_item(struct App* app, int forward, struct StackItem **item);

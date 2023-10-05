@@ -4,7 +4,6 @@ SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$SCRIPT_DIR/switch-tmux.sh"
 
 [[ ! -f "$SWITCH_SESSION_LIST_FILE" ]] && touch "$SWITCH_SESSION_LIST_FILE"
-[[ ! -f "$SWITCH_WINDOW_LIST_FILE" ]] && touch "$SWITCH_WINDOW_LIST_FILE"
 
 switch --server --socket-file "$SWITCH_SOCKET_FILE" & disown
 sleep 0.1

@@ -13,6 +13,7 @@ TEST_LDFLAGS := -lgtest -lgtest_main
 TEST_FILTER := *
 
 .PHONY: clean
+.PRECIOUS: test
 
 switch: $(OBJS)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^ src/main.c
