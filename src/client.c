@@ -75,8 +75,5 @@ do_request:
   if (ret != 0) {
     return ret;
   }
-  // if (request->request == CLIENT_REQUEST_SWITCH || request->request == CLIENT_REQUEST_GET_TOP) {
-  //   fprintf(stdout, "%s\n", response.id);
-  // }
   return 0;
 }
