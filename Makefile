@@ -7,6 +7,7 @@ LDFLAGS := -lX11 -lXi
 
 ifeq ($(DEBUG),1)
 	CFLAGS += -ggdb
+	CXXFLAGS += -ggdb
 endif
 
 TEST_SRCS := $(shell find src/test -name "*.cpp")

@@ -83,3 +83,14 @@ struct StackItem *delete_stack_item(struct StackItem *top, const char *id) {
   free(item);
   return top;
 }
+
+void delete_stack(struct StackItem *top) {
+  struct StackItem *current, *next;
+
+  current = top;
+  while (current) {
+    next = current->next;
+    free(current);
+    current = next;
+  }
+}

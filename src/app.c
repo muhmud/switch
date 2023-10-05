@@ -14,6 +14,11 @@ struct App *new_app(const char *name, int modcode) {
   return app;
 }
 
+void destroy_app(struct App *app) {
+  delete_stack(app->top);
+  free(app);
+}
+
 int add_item(struct App *app, const char *id) {
   if (!app) {
     return -1;

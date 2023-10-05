@@ -23,30 +23,36 @@ pthread_cond_t client_handler_started;
 int client_handler_running = 0;
 
 static int mod_press_handler(int modcode) {
-  struct App *app;
+  struct AppNode *node;
 
   app_keymap_lock();
-  app = find_app_by_modcode(modcode);
-  if (!app) {
+  node = find_apps_by_modcode(modcode);
+  if (!node) {
     app_keymap_unlock();
     return -1;
   }
-  app->pressed = 1;
+  while (node) {
+    node->app->pressed = 1;
+    node = node->next;
+  }
   app_keymap_unlock();
   return 0;
 }
 
 static int mod_release_handler(int modcode) {
-  struct App *app;
+  struct AppNode *node;
 
   app_keymap_lock();
-  app = find_app_by_modcode(modcode);
-  if (!app) {
+  node = find_apps_by_modcode(modcode);
+  if (!node) {
     app_keymap_unlock();
     return -1;
   }
-  app->pressed = 0;
-  select_item(app);
+  while (node) {
+    node->app->pressed = 0;
+    select_item(node->app);
+    node = node->next;
+  }
   app_keymap_unlock();
   return 0;
 }

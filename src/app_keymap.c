@@ -9,17 +9,23 @@
 
 static pthread_mutex_t keymap_mutex;
 
-static struct App *keymap[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                               NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static struct AppNode *new_app_node(struct App *app) {
+  struct AppNode *node;
+
+  node = (struct AppNode *)malloc(sizeof(struct AppNode));
+  node->app = app;
+  return node;
+}
+
+static struct AppNode *keymap[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
 static int empty_string(const char *value) { return !value || strcmp(value, "") == 0 ? 1 : 0; }
 
-static int update_keymap(int modcode, struct App *app) {
+static int update_keymap(int modcode, struct AppNode *node) {
   if (modcode != -1) {
-    if (keymap[modcode]) {
-      return -1;
-    }
-    keymap[modcode] = app;
+    node->next = keymap[modcode];
+    keymap[modcode] = node;
   }
   return 0;
 }
@@ -27,7 +33,7 @@ static int update_keymap(int modcode, struct App *app) {
 int init_keymap() { return pthread_mutex_init(&keymap_mutex, NULL); }
 
 int add_app(const char *name, int modcode) {
-  struct App *app;
+  struct AppNode *node;
   struct ModCodes modcodes;
 
   if (empty_string(name) || find_app(name)) {
@@ -37,30 +43,33 @@ int add_app(const char *name, int modcode) {
   if (modcodes.left == -1 && modcodes.right == -1) {
     return -1;
   }
-  app = new_app(name, modcode);
-  if (update_keymap(modcodes.left, app) == -1 || update_keymap(modcodes.right, app) == -1) {
+  node = new_app_node(new_app(name, modcode));
+  if (update_keymap(modcodes.left, node) == -1 || update_keymap(modcodes.right, node) == -1) {
     return -1;
   }
   return 0;
 }
 
 struct App *find_app(const char *name) {
-  struct App *app;
+  struct AppNode *node;
   int i;
 
   if (empty_string(name)) {
     return NULL;
   }
-  for (i = 0; i < sizeof(keymap) / sizeof(struct App *); ++i) {
-    app = keymap[i];
-    if (app && strcmp(app->name, name) == 0) {
-      return app;
+  for (i = 0; i < sizeof(keymap) / sizeof(struct AppNode *); ++i) {
+    node = keymap[i];
+    while (node) {
+      if (strcmp(node->app->name, name) == 0) {
+        return node->app;
+      }
+      node = node->next;
     }
   }
   return NULL;
 }
 
-struct App *find_app_by_modcode(int modcode) { return keymap[modcode]; }
+struct AppNode *find_apps_by_modcode(int modcode) { return keymap[modcode]; }
 
 void select_stack_item(struct App *app) {
   if (app->switching_current) {
@@ -69,40 +78,77 @@ void select_stack_item(struct App *app) {
   }
 }
 
+static struct AppNode *remove_item(int index, const char *name) {
+  struct AppNode *node, *parent;
+
+  node = keymap[index];
+  parent = NULL;
+  while (node) {
+    if (node->app && strcmp(node->app->name, name) == 0) {
+      if (parent) {
+        parent->next = node->next;
+      } else {
+        keymap[index] = node->next;
+      }
+      return node;
+    }
+    parent = node;
+    node = node->next;
+  }
+  return NULL;
+}
+
 int delete_app(const char *name) {
-  struct App *app;
+  struct AppNode *node, *parent;
   int i;
 
   if (empty_string(name)) {
     return -1;
   }
-  for (i = 0; i < sizeof(keymap) / sizeof(struct App *); ++i) {
-    app = keymap[i];
-    if (app && strcmp(app->name, name) == 0) {
-      free(app);
-      keymap[i] = NULL;
-      return 0;
+  for (i = 0; i < sizeof(keymap) / sizeof(struct AppNode *); ++i) {
+    node = keymap[i];
+    parent = NULL;
+    while (node) {
+      if (node->app && strcmp(node->app->name, name) == 0) {
+        if (parent) {
+          parent->next = node->next;
+        } else {
+          keymap[i] = node->next;
+        }
+        if (i != node->app->modcode) {
+          // remove the item in related list
+          remove_item(i + 1, node->app->name);
+        }
+        destroy_app(node->app);
+        free(node);
+        return 0;
+      }
+      parent = node;
+      node = node->next;
     }
   }
   return -1;
 }
 
 void clear_apps() {
-  struct App *app;
-  int i, j;
+  struct AppNode *node, *next;
+  int i;
 
-  for (i = 0; i < sizeof(keymap) / sizeof(struct App *); ++i) {
-    app = keymap[i];
-    if (app) {
-      for (j = i + 1; j < sizeof(keymap) / sizeof(struct App *); ++j) {
-        if (app == keymap[j]) {
-          keymap[j] = NULL;
-          break;
+  for (i = 0; i < sizeof(keymap) / sizeof(struct AppNode *); ++i) {
+    node = keymap[i];
+    while (node) {
+      next = node->next;
+      if (node->app) {
+        if (i != node->app->modcode) {
+          // remove the item in related list
+          remove_item(i + 1, node->app->name);
         }
+        destroy_app(node->app);
+        free(node);
       }
-      free(app);
-      keymap[i] = NULL;
+      node = next;
     }
+    keymap[i] = NULL;
   }
 }
 
