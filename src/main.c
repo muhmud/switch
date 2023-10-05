@@ -72,10 +72,11 @@ int main(int argc, char *argv[]) {
       break;
     case '?':
       fprintf(stderr,
-              "Usage: %s [-s | --server] [-S | --daemonize] [-c | --socket-file <file>] [-d | "
+              "Usage: %s\n"
+              "         [-s | --server] [-S | --daemonize] [-c | --socket-file <file>] [-d | "
               "--device <device>] |\n"
-              "          [-r | --request <type>] [-c | --socket-file <file>]\n"
-              "              [-a | --app <app>] [-i | --id <id>] [-m | --mod <mod>] [-b | "
+              "         [-r | --request <type>] [-c | --socket-file <file>]\n"
+              "         [-a | --app <app>] [-i | --id <id>] [-m | --mod <mod>] [-b | "
               "--reverse]\n",
               argv[0]);
     default:

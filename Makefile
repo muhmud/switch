@@ -1,4 +1,6 @@
-SRCS := $(shell find src -name "*.c" -not -path "src/main.c")
+MAIN := src/main.c
+SRCS := $(shell find src -name "*.c" -not -path "$(MAIN)")
+MAIN_OBJ := $(MAIN:c=o)
 OBJS := $(SRCS:c=o)
 CFLAGS := -Wall
 LDFLAGS := -lX11 -lXi
@@ -15,12 +17,12 @@ TEST_FILTER := *
 .PHONY: clean
 .PRECIOUS: test
 
-switch: $(OBJS)
-	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^ src/main.c
+switch: $(MAIN) $(OBJS)
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
 
 test: $(OBJS) $(TEST_OBJS)
 	@$(CXX) -o $@ $(CFLAGS) $(LDFLAGS) $(TEST_LDFLAGS) $^
 	@./$@ --gtest_filter=$(TEST_FILTER)
 
 clean:
-	$(RM) switch $(OBJS) test $(TEST_OBJS)
+	$(RM) switch $(MAIN_OBJ) $(OBJS) test $(TEST_OBJS)
