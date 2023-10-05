@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -166,7 +167,7 @@ static void server_cleanup(int signum) {
 
 static void exit_cleanup() { server_cleanup(0); }
 
-int server_daemonize() {
+static int server_daemonize() {
   int fd;
 
   switch (fork()) {
@@ -211,10 +212,8 @@ int start_server(const char *socket_file, const char *device, int daemonize) {
   pthread_t client_handler_thread_id;
   int ret;
 
-  if (daemonize) {
-    if ((ret = server_daemonize()) != 0) {
-      return ret;
-    }
+  if (daemonize && (ret = server_daemonize()) != 0) {
+    return ret;
   }
   sa.sa_handler = server_cleanup;
   sigemptyset(&sa.sa_mask);
@@ -222,9 +221,8 @@ int start_server(const char *socket_file, const char *device, int daemonize) {
   if (sigaction(SIGTERM, &sa, NULL) == -1 || sigaction(SIGINT, &sa, NULL) == -1) {
     return SIGNAL_HANDLER_ERROR;
   }
-  if (!daemonize) {
-    atexit(exit_cleanup);
-  }
+  signal(SIGPIPE, SIG_IGN);
+  atexit(exit_cleanup);
   ret = 0;
   mutex_initialized = 0;
   condition_initialized = 0;
@@ -265,7 +263,7 @@ int wait_for_server_ready(const char *socket_file, int sleep_interval_millisecon
   int ret;
   time_t timeout_end;
 
-  timeout_end = time(NULL) + timeout_milliseconds * 1000;
+  timeout_end = time(NULL) + timeout_milliseconds / 1000 + 1;
   while (1) {
     if (access(socket_file, F_OK) != -1) {
       sockfd = socket(AF_UNIX, SOCK_STREAM, 0);

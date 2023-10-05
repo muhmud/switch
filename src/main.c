@@ -8,7 +8,7 @@
 #include <string.h>
 
 #define SERVER_START_SLEEP_INTERVAL_MILLISECONDS 20
-#define SERVER_START_TIMEOUT_MILLISECONDS 260
+#define SERVER_START_TIMEOUT_MILLISECONDS 5000
 
 int main(int argc, char *argv[]) {
   struct ClientRequest client_request;
@@ -97,11 +97,12 @@ int main(int argc, char *argv[]) {
       exit(EXIT_SUCCESS);
     default:
       switch (wait_for_server_ready(socket_file, SERVER_START_SLEEP_INTERVAL_MILLISECONDS,
-                                    SERVER_START_SLEEP_INTERVAL_MILLISECONDS)) {
+                                    SERVER_START_TIMEOUT_MILLISECONDS)) {
       case 0:
         exit(EXIT_SUCCESS);
+      case TIMEOUT_ERROR:
+        fprintf(stderr, "timeout occurred waiting for server to start\n");
       default:
-        fprintf(stderr, "failed to check whether server has started or timeout occurred\n");
         exit(EXIT_FAILURE);
       }
     }

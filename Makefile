@@ -5,7 +5,7 @@ OBJS := $(SRCS:c=o)
 CFLAGS := -Wall
 LDFLAGS := -lX11 -lXi
 
-ifneq ($DEBUG,)
+ifeq ($(DEBUG),1)
 	CFLAGS += -ggdb
 endif
 
