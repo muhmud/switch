@@ -3,12 +3,15 @@
 #include "app_keymap.h"
 #include "disp/x11/keys.h"
 #include "request.h"
+#include <fcntl.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
+#include <time.h>
 #include <unistd.h>
 
 int server_fd = -1;
@@ -90,7 +93,7 @@ static int process_client_request(struct ClientRequest *request, struct ClientRe
   return ret;
 }
 
-void *client_handler(void *arg) {
+static void *client_handler(void *arg) {
   int client_fd;
   struct sockaddr_un server_addr, client_addr;
   int reuse;
@@ -163,20 +166,65 @@ static void server_cleanup(int signum) {
 
 static void exit_cleanup() { server_cleanup(0); }
 
-int start_server(const char *socket_file, const char *device) {
+int server_daemonize() {
+  int fd;
+
+  switch (fork()) {
+  case 0:
+    break;
+  case -1:
+    return -1;
+  default:
+    return 1;
+  }
+  if (setsid() == -1) {
+    return -1;
+  }
+  switch (fork()) {
+  case 0:
+    break;
+  case -1:
+    return -1;
+  default:
+    _exit(EXIT_SUCCESS);
+  }
+  umask(0);
+  chdir("/");
+  close(STDIN_FILENO);
+  fd = open("/dev/null", O_RDWR);
+  if (fd != STDIN_FILENO) {
+    return -1;
+  }
+  if (dup2(STDIN_FILENO, STDOUT_FILENO) != STDOUT_FILENO) {
+    return -1;
+  }
+  if (dup2(STDIN_FILENO, STDERR_FILENO) != STDERR_FILENO) {
+    return -1;
+  }
+  return 0;
+}
+
+int start_server(const char *socket_file, const char *device, int daemonize) {
   struct sigaction sa;
   int mutex_initialized;
   int condition_initialized;
   pthread_t client_handler_thread_id;
   int ret;
 
+  if (daemonize) {
+    if ((ret = server_daemonize()) != 0) {
+      return ret;
+    }
+  }
   sa.sa_handler = server_cleanup;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = 0;
   if (sigaction(SIGTERM, &sa, NULL) == -1 || sigaction(SIGINT, &sa, NULL) == -1) {
     return SIGNAL_HANDLER_ERROR;
   }
-  atexit(exit_cleanup);
+  if (!daemonize) {
+    atexit(exit_cleanup);
+  }
   ret = 0;
   mutex_initialized = 0;
   condition_initialized = 0;
@@ -209,4 +257,34 @@ quit:
     pthread_cond_destroy(&client_handler_started);
   }
   return ret;
+}
+
+int wait_for_server_ready(const char *socket_file, int sleep_interval_milliseconds,
+                          int timeout_milliseconds) {
+  int sockfd;
+  int ret;
+  time_t timeout_end;
+
+  timeout_end = time(NULL) + timeout_milliseconds * 1000;
+  while (1) {
+    if (access(socket_file, F_OK) != -1) {
+      sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+      if (sockfd == -1) {
+        return SERVER_ERROR;
+      }
+      struct sockaddr_un server_addr;
+      server_addr.sun_family = AF_UNIX;
+      strncpy(server_addr.sun_path, socket_file, sizeof(server_addr.sun_path) - 1);
+      ret = connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+      close(sockfd);
+      if (ret == 0) {
+        return 0;
+      }
+    }
+    if (time(NULL) >= timeout_end) {
+      break;
+    }
+    usleep((useconds_t)sleep_interval_milliseconds * 1000);
+  }
+  return TIMEOUT_ERROR;
 }

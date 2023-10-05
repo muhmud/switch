@@ -7,10 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SERVER_START_SLEEP_INTERVAL_MILLISECONDS 20
+#define SERVER_START_TIMEOUT_MILLISECONDS 260
+
 int main(int argc, char *argv[]) {
   struct ClientRequest client_request;
   struct ClientResponse *client_response;
   int server;
+  int daemonize;
   int forward;
   const char *socket_file;
   const char *device;
@@ -22,17 +26,14 @@ int main(int argc, char *argv[]) {
   const char *err_msg;
 
   struct option long_options[] = {
-      {"server", no_argument, NULL, 's'},
-      {"reverse", no_argument, NULL, 'b'},
-      {"socket-file", required_argument, NULL, 'c'},
-      {"device", required_argument, NULL, 'd'},
-      {"request", required_argument, NULL, 'r'},
-      {"app", required_argument, NULL, 'a'},
-      {"mod", required_argument, NULL, 'm'},
-      {"id", required_argument, NULL, 'i'},
-      {NULL, 0, NULL, 0} // End of options
+      {"server", no_argument, NULL, 's'},       {"reverse", no_argument, NULL, 'b'},
+      {"daemonize", no_argument, NULL, 'S'},    {"socket-file", required_argument, NULL, 'c'},
+      {"device", required_argument, NULL, 'd'}, {"request", required_argument, NULL, 'r'},
+      {"app", required_argument, NULL, 'a'},    {"mod", required_argument, NULL, 'm'},
+      {"id", required_argument, NULL, 'i'},     {NULL, 0, NULL, 0} // End of options
   };
   server = 0;
+  daemonize = 0;
   forward = 1;
   socket_file = DEFAULT_SOCKET_PATH;
   device = NULL;
@@ -40,10 +41,13 @@ int main(int argc, char *argv[]) {
   app = NULL;
   modcode = NULL;
   id = NULL;
-  while ((option = getopt_long(argc, argv, "sc:d:ba:m:i:f", long_options, NULL)) != -1) {
+  while ((option = getopt_long(argc, argv, "Ssc:d:ba:m:i:f", long_options, NULL)) != -1) {
     switch (option) {
     case 's':
       server = 1;
+      break;
+    case 'S':
+      daemonize = 1;
       break;
     case 'c':
       socket_file = optarg;
@@ -68,7 +72,8 @@ int main(int argc, char *argv[]) {
       break;
     case '?':
       fprintf(stderr,
-              "Usage: %s [-s | --server] [-c | --socket-file <file>] [-d | --device <device>] |\n"
+              "Usage: %s [-s | --server] [-S | --daemonize] [-c | --socket-file <file>] [-d | "
+              "--device <device>] |\n"
               "          [-r | --request <type>] [-c | --socket-file <file>]\n"
               "              [-a | --app <app>] [-i | --id <id>] [-m | --mod <mod>] [-b | "
               "--reverse]\n",
@@ -83,9 +88,21 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "invalid device specified\n");
       exit(EXIT_FAILURE);
     }
-    if (start_server(socket_file, device) != 0) {
+    switch (start_server(socket_file, device, daemonize)) {
+    case -1:
       fprintf(stderr, "failed to start server\n");
       exit(EXIT_FAILURE);
+    case 0:
+      exit(EXIT_SUCCESS);
+    default:
+      switch (wait_for_server_ready(socket_file, SERVER_START_SLEEP_INTERVAL_MILLISECONDS,
+                                    SERVER_START_SLEEP_INTERVAL_MILLISECONDS)) {
+      case 0:
+        exit(EXIT_SUCCESS);
+      default:
+        fprintf(stderr, "failed to check whether server has started or timeout occurred\n");
+        exit(EXIT_FAILURE);
+      }
     }
     exit(EXIT_SUCCESS);
   }
