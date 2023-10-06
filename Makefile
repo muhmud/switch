@@ -15,8 +15,11 @@ TEST_SRCS := $(shell find src/test -name "*.cpp")
 TEST_OBJS := $(TEST_SRCS:cpp=o)
 TEST_LDFLAGS := -lgtest -lgtest_main
 TEST_FILTER := *
-ifeq ($(findstring *,$(TEST_FILTER)),)
-	TEST_BREAKPOINT:=-ex 'b $(subst .,_,$(TEST_FILTER))_Test::TestBody()'
+TEST_RBREAK := 1
+ifneq ($(TEST_FILTER),*)
+ifeq ($(TEST_RBREAK),1)
+	TEST_BREAKPOINT:=-ex 'rbreak $(subst *,.*,$(subst .,_,$(TEST_FILTER)))_Test::TestBody()'
+endif
 endif
 
 .PHONY: clean
