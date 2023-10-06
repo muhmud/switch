@@ -22,7 +22,7 @@ ifeq ($(TEST_RBREAK),1)
 endif
 endif
 
-.PHONY: clean
+.PHONY: clean debug-test
 .PRECIOUS: test
 
 switch: $(MAIN) $(OBJS)
