@@ -9,11 +9,11 @@ GDB := gdb
 TEST_SRCS := $(shell find src/test -name "*.cpp")
 TEST_OBJS := $(TEST_SRCS:cpp=o)
 TEST_LDFLAGS := -lgtest -lgtest_main
-TEST_FILTER := *
 TEST_RBREAK := 1
-ifneq ($(TEST_FILTER),*)
+TEST := *
+ifneq ($(TEST),*)
 ifeq ($(TEST_RBREAK),1)
-	TEST_BREAKPOINT:=-ex 'rbreak $(subst *,.*,$(subst .,_,$(TEST_FILTER)))_Test::TestBody()'
+	TEST_BREAKPOINT:=-ex 'rbreak $(subst *,.*,$(subst .,_,$(TEST)))_Test::TestBody()'
 endif
 endif
 
@@ -22,18 +22,30 @@ ifeq ($(DEBUG),1)
 	CXXFLAGS += -ggdb
 endif
 
-.PHONY: clean debug-test
+PREFIX=/usr/local
+APP=switch
+MAN_SRC=man/man1/switch.1
+MAN_GZIP=switch.1.gz
+
+.PHONY: clean debug-test install
 .PRECIOUS: test
 
-switch: $(MAIN) $(OBJS)
+$(APP): $(MAIN) $(OBJS)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
 
 test: $(OBJS) $(TEST_OBJS)
 	@$(CXX) -o $@ $(CFLAGS) $(LDFLAGS) $(TEST_LDFLAGS) $^
-	@./$@ --gtest_filter='$(TEST_FILTER)'
+	@./$@ --gtest_filter='$(TEST)'
 
-debug-test: test
-	@$(GDB) $(TEST_BREAKPOINT) --args ./$^ --gtest_filter='$(TEST_FILTER)'
+debug: test
+	@$(GDB) $(TEST_BREAKPOINT) --args ./$^ --gtest_filter='$(TEST)'
 
 clean:
-	$(RM) switch $(MAIN_OBJ) $(OBJS) test $(TEST_OBJS)
+	$(RM) $(APP) $(MAIN_OBJ) $(OBJS) test $(TEST_OBJS) $(MAN_GZIP)
+
+$(MAN_GZIP):
+	gzip -c $(MAN_SRC) > $(MAN_GZIP)
+
+install: $(APP) $(MAN_GZIP)
+	cp $(APP) $(PREFIX)/bin/
+	cp $(MAN_GZIP) $(PREFIX)/share/man/man1/

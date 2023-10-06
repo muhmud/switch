@@ -123,13 +123,18 @@ either the left or right key for a modifier, or both.
 
 To get the most value out of switch a client application, such as tmux or vim,
 must interface with it. This involves writing some kind of plugin that can tell
-switch when a new window has been created, deleted, or has received focus. When
-using a separate instance of switch for each client application, it can also be
-necessary to know when the instance should be created and destroyed. You also
-need to left switch know when you want to start traversing the window stack so
-that it can left you know when window to go to next.
+switch when a new window has been created, deleted, or has received focus.
+
+When using a separate instance of switch for each client application, it can
+also be necessary to know when the instance should be created and destroyed.
+You also need to left switch know when you want to start traversing the window
+stack so that it can left you know when window to go to next.
 
 To source distribution contains a few working plugins.
+
+.SH WAYLAND
+
+Though written to work in X11, switch appears to work using XWayland.
 
 .SH EXAMPLES
 
@@ -159,6 +164,6 @@ Muhmud Ahmad (\fImuhmud.ahmad@gmail.com\fR)
 
 .SH SEE ALSO
 .RS
-.I https://github.com/junegunn/fzf
+.I https://github.com/muhmud/switch
 .RE
 .br
