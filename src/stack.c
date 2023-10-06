@@ -87,10 +87,12 @@ struct StackItem *delete_stack_item(struct StackItem *top, const char *id) {
 void delete_stack(struct StackItem *top) {
   struct StackItem *current, *next;
 
-  current = top;
-  while (current) {
-    next = current->next;
-    free(current);
-    current = next;
+  if (top) {
+    current = top;
+    do {
+      next = current->next;
+      free(current);
+      current = next;
+    } while (current && current != top);
   }
 }

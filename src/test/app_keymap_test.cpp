@@ -6,6 +6,10 @@
 #define THIRD_APP "third"
 #define FOURTH_APP "fourth"
 
+#define TOP "top"
+#define MIDDLE "middle"
+#define BOTTOM "bottom"
+
 TEST(AppKeymapTest, add_app) {
   clear_apps();
 
@@ -183,4 +187,21 @@ TEST(AppKeymapTest, delete_app_multi_for_mod_third) {
   EXPECT_STREQ(node->app->name, TEST_APP);
   EXPECT_EQ(node->app->modcode, Alt);
   EXPECT_FALSE(node->next);
+}
+
+TEST(AppKeymapTest, restart_app) {
+  clear_apps();
+
+  EXPECT_EQ(add_app(TEST_APP, Alt), 0);
+  auto app = find_app(TEST_APP);
+  EXPECT_TRUE(app);
+  EXPECT_EQ(add_item(app, BOTTOM), 0);
+  EXPECT_EQ(add_item(app, MIDDLE), 0);
+  EXPECT_EQ(add_item(app, TOP), 0);
+  EXPECT_TRUE(app->top);
+
+  restart_app(TEST_APP);
+  app = find_app(TEST_APP);
+  EXPECT_TRUE(app);
+  EXPECT_FALSE(app->top);
 }
