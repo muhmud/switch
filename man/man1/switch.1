@@ -1,0 +1,109 @@
+.TH switch 1 "Oct 2023" "switch 1.0" "switch - application switching enabler"
+
+.SH NAME
+switch - application switching enabler
+
+.SH SYNOPSIS
+switch [-s | --server] [OPTIONS]
+switch [-r | --request <type>] [OPTIONS]
+
+.SH DESCRIPTION
+Using switch you can maintain an MRU ordered stack of windows for one or more
+applications. Each application in switch must be mapped to a specific modifier
+key, which must used as part of a keyboard shortcut to switch between windows
+in the actual application.
+
+When the modifier key is pressed, you can ask switch to return the windows it
+knows about in most-recently used order. While switching between windows in
+this way, if the modifier key is released, switch will automatically realize
+that you have chosen a window, and will move it to the stack.
+
+As well as for switching in MRU order, you can also move through the windows
+in another order you like, such as moving to a window on your left or right,
+by one or more positions. As long as you use the same modifier key for the
+shortcut you use for this operation, you can get switch to recognize the
+correct window to move to the top of the stack, ignoring the windows you moved
+through temporarily while holding down the modifier key.
+
+This functionality is most useful for terminal applications where detecting the
+release of a key is not possible. Each such application requires an integration
+plugin to work with switch. Plugins are available for vim and tmux.
+
+.SH OPTIONS
+.SS Server
+.TP
+.B "-s, --server"
+Start a server
+.TP
+.B "-S, --daemonize"
+Run the server as a daemon. When this option is used, the command will return
+when the server is ready to accept connections.
+.TP
+.B "-c, --socket-file [FILE]"
+The socket file the server will listen on for client connections. If not
+specified, the default is \fB/tmp/switch\fR.
+.TP
+.B "-d, --device [DEVICE]"
+The ID of the device to monitor for modifier key press/release events. If not
+specified, all devices will be monitored.
+.SS Client
+.TP
+.B "-r, --request [TYPE]"
+The type of request to send to the server. For details of the commands that can
+be sent, see the \fBCLIENT REQUESTS\fR.
+.TP
+.B "-c, --socket-file [FILE]"
+The socket file to connect to the server on. If not specified, the default is
+\fB/tmp/switch\fR.
+.TP
+.B "-a, --app [APP]"
+The name of the app to associate with the request
+.TP
+.B "-i, --id [ID]"
+The id of the window to associate with the request
+.TP
+.B "-m, --mod [MOD]"
+The modifier key to associate with the request
+.TP
+.B "-b, --reverse"
+Whether switching should be requested in reverse stack order
+
+.SH SERVER
+
+A server can be used as a single, central process for all applications, with
+support for multiple applications using the same modifier keys, as long as each
+application name is unique. Alternatively, a single switch server could be used
+for each application.
+
+.SH CLIENT REQUESTS
+
+The following request types can be performed against a running server:
+
+    \fBadd-app      \fRAdd a new application.
+                    \fB--app\fR and \fB--mod\fR must be specified
+    \fBdelete-app   \fRDeletes an application.
+                    \fB--app\fR must be specified
+    \fBadd          \fRAdds a new window.
+                    \fB--app\fR and \fB--id\fR must be specified
+    \fBdelete       \fRDeletes a window.
+                    \fB--app\fR and \fB--id\fR must be specified
+    \fBswitch       \fRSwitch to the next window on the stack.
+                    \fB--app\fR must be specified
+    \fBset          \fRAdd or move a window to the top of the stack.
+                    \fB--app\fR and \fB--id\fR must be specified
+    \fBtop          \fRReturns the window at the top of the stack
+                    \fB--app\fR must be specified
+    \fBrestart-app  \fRRestarts an app by removing all existing windows.
+                    \fB--app\fR must be specified
+    \fBshutdown     \fRShuts down the server
+
+.SH EXAMPLES
+
+Start a server as a daemon:
+    $ switch --server --daemonize
+
+
+
+
+
+

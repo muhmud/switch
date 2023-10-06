@@ -4,7 +4,7 @@
 #define SIGNAL_HANDLER_ERROR 1
 #define CLIENT_HANDLER_ERROR 2
 
-int start_server(const char *socket_file, const char* device, int daemonize);
+int start_server(const char *socket_file, const char* deviceid, int daemonize);
 
 #define SERVER_ERROR 1
 #define TIMEOUT_ERROR 2

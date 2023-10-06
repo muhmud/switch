@@ -214,7 +214,7 @@ static int server_daemonize() {
   return 0;
 }
 
-int start_server(const char *socket_file, const char *device, int daemonize) {
+int start_server(const char *socket_file, const char *deviceid, int daemonize) {
   struct sigaction sa;
   int mutex_initialized;
   int condition_initialized;
@@ -255,7 +255,7 @@ int start_server(const char *socket_file, const char *device, int daemonize) {
     ret = CLIENT_HANDLER_ERROR;
     goto quit;
   }
-  start_monitoring_mods_x11(device, mod_press_handler, mod_release_handler);
+  start_monitoring_mods_x11(deviceid, mod_press_handler, mod_release_handler);
 quit:
   if (mutex_initialized == 1) {
     pthread_mutex_destroy(&client_handler_mutex);
