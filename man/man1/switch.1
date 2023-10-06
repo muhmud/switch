@@ -97,13 +97,68 @@ The following request types can be performed against a running server:
                     \fB--app\fR must be specified
     \fBshutdown     \fRShuts down the server
 
+The following modifier keys can be used with an application. You can bind to
+either the left or right key for a modifier, or both.
+
+    Shift_L
+    Shift_R
+    Shift
+    Control_L
+    Control_R
+    Control
+    Meta_L
+    Meta_R
+    Meta
+    Alt_L
+    Alt_R
+    Alt
+    Super_L
+    Super_R
+    Super
+    Hyper_L
+    Hyper_R
+    Hyper
+
+.SH CLIENT PLUGINS
+
+To get the most value out of switch a client application, such as tmux or vim,
+must interface with it. This involves writing some kind of plugin that can tell
+switch when a new window has been created, deleted, or has received focus. When
+using a separate instance of switch for each client application, it can also be
+necessary to know when the instance should be created and destroyed. You also
+need to left switch know when you want to start traversing the window stack so
+that it can left you know when window to go to next.
+
+To source distribution contains a few working plugins.
+
 .SH EXAMPLES
 
 Start a server as a daemon:
     $ switch --server --daemonize
 
+Add an application to monitor to a server
+    $ switch --request add-app --app vim-12345 --mod Alt
 
+Add a new window to stack
+    $ switch --request add --app vim-12345 --id 1
 
+Delete a window
+    $ switch --request delete --app vim-12345 --id 1
 
+Starting switch through the stack
+    $ switch --request switch --app vim-12345
 
+Switch through the stack in reverse
+    $ switch --request switch --app vim-12345 --reverse
 
+Shutdown the server
+    $ switch --shutdown
+
+.SH AUTHOR
+Muhmud Ahmad (\fImuhmud.ahmad@gmail.com\fR)
+
+.SH SEE ALSO
+.RS
+.I https://github.com/junegunn/fzf
+.RE
+.br
