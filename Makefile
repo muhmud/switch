@@ -5,11 +5,6 @@ OBJS := $(SRCS:c=o)
 CFLAGS := -Wall
 LDFLAGS := -lX11 -lXi
 
-ifeq ($(DEBUG),1)
-	CFLAGS += -ggdb
-	CXXFLAGS += -ggdb
-endif
-
 GDB := gdb
 TEST_SRCS := $(shell find src/test -name "*.cpp")
 TEST_OBJS := $(TEST_SRCS:cpp=o)
@@ -20,6 +15,11 @@ ifneq ($(TEST_FILTER),*)
 ifeq ($(TEST_RBREAK),1)
 	TEST_BREAKPOINT:=-ex 'rbreak $(subst *,.*,$(subst .,_,$(TEST_FILTER)))_Test::TestBody()'
 endif
+endif
+
+ifeq ($(DEBUG),1)
+	CFLAGS += -ggdb
+	CXXFLAGS += -ggdb
 endif
 
 .PHONY: clean debug-test
