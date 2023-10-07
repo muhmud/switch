@@ -47,5 +47,7 @@ $(MAN_GZIP):
 	gzip -c $(MAN_SRC) > $(MAN_GZIP)
 
 install: $(APP) $(MAN_GZIP)
+	mkdir -p $(PREFIX)/bin/
 	cp $(APP) $(PREFIX)/bin/
+	mkdir -p $(PREFIX)/share/man/man1/
 	cp $(MAN_GZIP) $(PREFIX)/share/man/man1/
