@@ -1,5 +1,6 @@
 #include "keys.h"
 #include "../../mods.h"
+#include <X11/extensions/XI2.h>
 #include <X11/keysym.h>
 #include <ctype.h>
 #include <inttypes.h>
@@ -14,7 +15,7 @@ XIDeviceInfo *find_device_x11(Display *display, const char *device) {
   char *endptr;
   long int deviceid;
 
-  deviceid = 0;
+  deviceid = XIAllDevices;
   if (device) {
     deviceid = strtoimax(device, &endptr, 10);
     if (*endptr != '\0') {
@@ -63,7 +64,7 @@ int start_monitoring_mods_x11(const char *device, KeyHandlerX11 mod_press_handle
     ret = X_INVALID_DEVICE_ERROR;
     goto fail;
   }
-  evmask.deviceid = dev->deviceid;
+  evmask.deviceid = device ? dev->deviceid : XIAllDevices;
   evmask.mask_len = sizeof(mask);
   evmask.mask = mask;
   XISetMask(mask, XI_KeyPress);

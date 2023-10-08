@@ -13,13 +13,8 @@ endif
 let g:loaded_switch = 1
 
 " Script variable(s)
-"let s:switch_enabled = $SWITCH_ENABLE == 1 ? 1 : 0
-let s:switch_enabled = 1
 let s:switch_keys_mapped = 0
 let s:docs_path = $VIMRUNTIME . '/doc/'
-
-" Buffer variable(s)
-let b:command_prefix = ""
 
 function SwitchApplyDefaultKeyMappings()
   if s:switch_keys_mapped == 0
@@ -34,47 +29,36 @@ function SwitchApplyDefaultKeyMappings()
   endif
 endfunction
 
-function SwitchEnable()
-  if g:switch_enable_key_mappings == 1
-    call SwitchApplyDefaultKeyMappings()
-  endif
+function SwitchStart()
   if !exists('s:switch_app')
     let s:switch_app = printf("vim-%d", getpid())
     let s:switch_socket_file = printf("/tmp/switch.%s", s:switch_app)
-    let s:job = jobstart(["switch", "--server", "--socket-file", s:switch_socket_file])
-    sleep 100m
+    call system(["switch", "--server", "--daemonize", "--socket-file", s:switch_socket_file])
     call system(["switch", "--request", "add-app", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--mod", "alt"])
     augroup switch_buffers
       autocmd!
       autocmd BufEnter * call SwitchSet()
       autocmd BufUnload * call SwitchDelete()
+      autocmd VimLeave * call SwitchExit()
     augroup END
   endif
-  let s:switch_enabled = 1
+  if g:switch_enable_key_mappings == 1
+    call SwitchApplyDefaultKeyMappings()
+  endif
 endfunction
 
-command SwitchEnable :call SwitchEnable()
-
-function SwitchDisable()
-  let s:switch_enabled = 0
+function SwitchExit()
+  call system(["switch", "--request", "shutdown", "--socket-file", s:switch_socket_file])
 endfunction
-
-command SwitchDisable :call SwitchDisable()
 
 " By default, keys will be mapped
 if !exists("g:switch_enable_key_mappings")
   let g:switch_enable_key_mappings=1
 endif
 
-if s:switch_enabled == 1
-  call SwitchEnable()
-endif
+call SwitchStart()
 
 function SwitchNew()
-  if s:switch_enabled != 1
-    return
-  endif
-
   enew
   let l:bufnum = bufnr('%')
 
@@ -82,10 +66,6 @@ function SwitchNew()
 endfunction
 
 function SwitchAdd()
-  if s:switch_enabled != 1
-    return
-  endif
-
   let l:bufnum = expand('<afile>')
   if l:bufnum != ''
     call system(["switch", "--request", "add", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr(l:bufnum)])
@@ -93,27 +73,15 @@ function SwitchAdd()
 endfunction
 
 function SwitchDelete()
-  if s:switch_enabled != 1
-    return
-  endif
-
   call system(["switch", "--request", "delete", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", expand('<abuf>')])
 endfunction
 
 function SwitchClose()
-  if s:switch_enabled != 1
-    return
-  endif
-
   call system(["switch", "--request", "delete", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr('%')])
   execute 'q'
 endfunction
 
 function SwitchSet()
-  if s:switch_enabled != 1
-    return
-  endif
-
   let l:bufnum = expand('<abuf>')
   if l:bufnum != -1
     call system(["switch", "--request", "set", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", l:bufnum])
@@ -121,39 +89,23 @@ function SwitchSet()
 endfunction
 
 function SwitchSetLeft()
-  if s:switch_enabled != 1
-    return
-  endif
-
   BufferLineCyclePrev
   call system(["switch", "--request", "set", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr('%')])
 endfunction
 
 function SwitchSetRight()
-  if s:switch_enabled != 1
-    return
-  endif
-
   BufferLineCycleNext
   call system(["switch", "--request", "set", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr('%')])
 endfunction
 
 function SwitchSwitch()
-  if s:switch_enabled != 1
-    return
-  endif
-
-  let l:buffer = system(["switch", "--request", "switch", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--forward"])
+  let l:buffer = system(["switch", "--request", "switch", "--socket-file", s:switch_socket_file, "--app", s:switch_app])
   if l:buffer != "\n"
     execute 'buffer ' . l:buffer
   endif
 endfunction
 
 function SwitchReverseSwitch()
-  if s:switch_enabled != 1
-    return
-  endif
-
-  let l:buffer = system(["switch", "--request", "switch", "--socket-file", s:switch_socket_file, "--app", s:switch_app])
+  let l:buffer = system(["switch", "--request", "switch", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--reverse"])
   execute 'buffer ' . l:buffer
 endfunction

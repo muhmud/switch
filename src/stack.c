@@ -19,7 +19,7 @@ struct StackItem *add_stack_item(struct StackItem *top, const char *id) {
 
   item = find_stack_item(top, id);
   if (item) {
-    return NULL;
+    return top;
   }
   return move_to_top_of_stack(top, new_stack_item(id));
 }

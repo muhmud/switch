@@ -14,6 +14,6 @@ struct ClientResponse;
 #define SOCKET_SEND_ERROR 7
 #define SOCKET_RECEIVE_ERROR 8
 
-int send_request(const char *socket_file, struct ClientRequest *request, struct ClientResponse** response);
+int send_request(const char *socket_file, struct ClientRequest *request, struct ClientResponse* response);
 
 #endif // _SWITCH_CLIENT_H_

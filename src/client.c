@@ -41,10 +41,9 @@ quit:
 }
 
 int send_request(const char *socket_file, struct ClientRequest *request,
-                 struct ClientResponse **response) {
+                 struct ClientResponse *response) {
   int ret;
 
-  assert(socket_file && request);
   if (request->request != CLIENT_REQUEST_SHUTDOWN) {
     if (strlen(request->app) == 0) {
       return APP_NAME_NOT_PROVIDED_ERROR;
@@ -72,7 +71,7 @@ int send_request(const char *socket_file, struct ClientRequest *request,
     return INVALID_REQUEST_ERROR;
   }
 do_request:
-  ret = dispatch_request(socket_file, request, *response);
+  ret = dispatch_request(socket_file, request, response);
   if (ret != 0) {
     return ret;
   }

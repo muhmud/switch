@@ -14,7 +14,7 @@
 int main(int argc, char *argv[]) {
   XIDeviceInfo *dev;
   struct ClientRequest client_request;
-  struct ClientResponse *client_response;
+  struct ClientResponse client_response;
   int server;
   int daemonize;
   int forward;
@@ -116,6 +116,7 @@ int main(int argc, char *argv[]) {
   }
   if (request) {
     memset(&client_request, 0, sizeof(struct ClientRequest));
+    memset(&client_response, 0, sizeof(struct ClientResponse));
     client_request.request = convert_string_to_request(request);
     client_request.modcode = convert_string_to_modcode(modcode);
     client_request.forward = forward;
@@ -144,13 +145,16 @@ int main(int argc, char *argv[]) {
     default:
       err_msg = "server error";
     }
+    if (client_response.ret != 0) {
+      err_msg = "server failed to process request";
+    }
     if (err_msg) {
       fprintf(stderr, "request failed: %s\n", err_msg);
       exit(EXIT_FAILURE);
     }
     if (client_request.request == CLIENT_REQUEST_SWITCH ||
         client_request.request == CLIENT_REQUEST_GET_TOP) {
-      fprintf(stdout, "%s\n", client_response->id);
+      fprintf(stdout, "%s\n", client_response.id);
       exit(EXIT_SUCCESS);
     }
   }
