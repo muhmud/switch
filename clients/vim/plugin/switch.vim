@@ -88,6 +88,11 @@ function SwitchDelete()
   call system(["switch", "--request", "delete", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", expand('<abuf>')])
 endfunction
 
+function SwitchClose()
+  call system(["switch", "--request", "delete", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr('%')])
+  execute 'q'
+endfunction
+
 function SwitchExit()
   call system(["switch", "--request", "shutdown", "--socket-file", s:switch_socket_file])
 endfunction
