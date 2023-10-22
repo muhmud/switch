@@ -70,6 +70,13 @@ function SwitchReverseSwitch()
   execute 'buffer ' . l:buffer
 endfunction
 
+function SwitchNew()
+  enew
+  let l:bufnum = bufnr('%')
+
+  call system(["switch", "--request", "add", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", l:bufnum])
+endfunction
+
 function SwitchSet()
   let l:bufnum = expand('<abuf>')
   if l:bufnum != -1
