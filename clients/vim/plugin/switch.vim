@@ -1,4 +1,4 @@
-" Vim plugin for switch
+"Vim plugin for switch
 " Last Change:  2023 Sep 24
 " Maintainer:   Muhmud Ahmad
 " License:      This file is placed in the public domain.
@@ -34,7 +34,7 @@ function SwitchStart()
     let s:switch_app = printf("vim-%d", getpid())
     let s:switch_socket_file = printf("/tmp/switch.%s", s:switch_app)
     call system(["switch", "--server", "--daemonize", "--socket-file", s:switch_socket_file])
-    call system(["switch", "--request", "add-app", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--mod", "alt"])
+    call system(["switch", "--request", "add-app", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--mod", g:switch_modifier_key])
     augroup switch_buffers
       autocmd!
       autocmd BufEnter * call SwitchSet()
@@ -47,56 +47,16 @@ function SwitchStart()
   endif
 endfunction
 
-function SwitchExit()
-  call system(["switch", "--request", "shutdown", "--socket-file", s:switch_socket_file])
-endfunction
-
 " By default, keys will be mapped
 if !exists("g:switch_enable_key_mappings")
   let g:switch_enable_key_mappings=1
 endif
 
+if !exists("g:switch_modifier_key")
+  let g:switch_modifier_key="alt"
+endif
+
 call SwitchStart()
-
-function SwitchNew()
-  enew
-  let l:bufnum = bufnr('%')
-
-  call system(["switch", "--request", "add", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", l:bufnum])
-endfunction
-
-function SwitchAdd()
-  let l:bufnum = expand('<afile>')
-  if l:bufnum != ''
-    call system(["switch", "--request", "add", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr(l:bufnum)])
-  endif
-endfunction
-
-function SwitchDelete()
-  call system(["switch", "--request", "delete", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", expand('<abuf>')])
-endfunction
-
-function SwitchClose()
-  call system(["switch", "--request", "delete", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr('%')])
-  execute 'q'
-endfunction
-
-function SwitchSet()
-  let l:bufnum = expand('<abuf>')
-  if l:bufnum != -1
-    call system(["switch", "--request", "set", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", l:bufnum])
-  endif
-endfunction
-
-function SwitchSetLeft()
-  BufferLineCyclePrev
-  call system(["switch", "--request", "set", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr('%')])
-endfunction
-
-function SwitchSetRight()
-  BufferLineCycleNext
-  call system(["switch", "--request", "set", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", bufnr('%')])
-endfunction
 
 function SwitchSwitch()
   let l:buffer = system(["switch", "--request", "switch", "--socket-file", s:switch_socket_file, "--app", s:switch_app])
@@ -108,4 +68,19 @@ endfunction
 function SwitchReverseSwitch()
   let l:buffer = system(["switch", "--request", "switch", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--reverse"])
   execute 'buffer ' . l:buffer
+endfunction
+
+function SwitchSet()
+  let l:bufnum = expand('<abuf>')
+  if l:bufnum != -1
+    call system(["switch", "--request", "set", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", l:bufnum])
+  endif
+endfunction
+
+function SwitchDelete()
+  call system(["switch", "--request", "delete", "--socket-file", s:switch_socket_file, "--app", s:switch_app, "--id", expand('<abuf>')])
+endfunction
+
+function SwitchExit()
+  call system(["switch", "--request", "shutdown", "--socket-file", s:switch_socket_file])
 endfunction

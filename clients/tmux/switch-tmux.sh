@@ -5,6 +5,7 @@ SWITCH_APP="tmux-$SWITCH_SESSION_ID"
 export SWITCH_SESSION_LIST_FILE="/tmp/switch.tmux.sessions"
 export SWITCH_WINDOW_LIST_FILE="/tmp/switch.$SWITCH_APP.windows"
 export SWITCH_SOCKET_FILE="/tmp/switch.$SWITCH_APP"
+export SWITCH_MOD_KEY=${SWITCH_MOD_KEY:-alt}
 
 function list_file_contains() {
   local -r id=$1
