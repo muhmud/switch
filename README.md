@@ -47,19 +47,22 @@ After installing the provided scripts to `~/.switch/tmux`, add the following to 
 
 ```
 # Switch
-set-hook -g window-linked "run-shell ~/.switch/tmux/window-add.sh"
+set-hook -g pane-focus-in "run-shell 'env SWITCH_MOD_KEY=alt SWITCH_PANE_MOD_KEY=ctrl ~/.switch/tmux/set.sh'"
 set-hook -g window-unlinked "run-shell ~/.switch/tmux/window-delete.sh"
-set-hook -g pane-focus-in "run-shell ~/.switch/tmux/set.sh"
-set-hook -g session-created "run-shell 'env SWITCH_MOD_KEY=alt ~/.switch/tmux/session-add.sh'"
 set-hook -g session-closed "run-shell ~/.switch/tmux/session-delete.sh"
 
 bind-key -n M-a run-shell "~/.switch/tmux/switch.sh"
 bind-key -n M-S-a run-shell "~/.switch/tmux/reverse-switch.sh"
+bind-key -n C-a run-shell "~/.switch/tmux/pane-switch.sh"
+bind-key -n C-S-a run-shell "~/.switch/tmux/reverse-pane-switch.sh"
 ```
 
-In the future, I might turn this into a proper tmux plugin. In this case also, the `alt` key is used
-as the modifier. To change this, update the shortcuts, and also the `set-hook` line for
-`session-created`.
+In the future, I might turn this into a proper tmux plugin. In this case, the `alt` key is used
+as the modifier for switching between windows. However, `ctrl` is also used to switch between
+panes within each window. To change these modifiers, update the switching shortcuts, and also
+change the environment variables in the `set-hook` line for `pane-focus-in`.
+
+For the `pane-focus-in` event to work, `focus-events` must be enabled.
 
 # Documentation
 
