@@ -10,5 +10,5 @@ align_list_file "$SWITCH_SESSION_LIST_FILE" "$(get_session_list)" | \
     SWITCH_WINDOW_LIST_FILE="/tmp/switch.$SWITCH_APP.windows"
 
     switch --request shutdown --socket-file "$SWITCH_SOCKET_FILE"
-    rm -f "$SWITCH_WINDOW_LIST_FILE"
+    rm -f "$SWITCH_WINDOW_LIST_FILE" "$SWITCH_WINDOW_LIST_FILE".*
   done

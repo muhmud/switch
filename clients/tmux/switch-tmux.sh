@@ -6,6 +6,7 @@ export SWITCH_SESSION_LIST_FILE="/tmp/switch.tmux.sessions"
 export SWITCH_WINDOW_LIST_FILE="/tmp/switch.$SWITCH_APP.windows"
 export SWITCH_SOCKET_FILE="/tmp/switch.$SWITCH_APP"
 export SWITCH_MOD_KEY=${SWITCH_MOD_KEY:-alt}
+export SWITCH_PANE_MOD_KEY=${SWITCH_PANE_MOD_KEY:-ctrl}
 
 function list_file_contains() {
   local -r id=$1
@@ -59,3 +60,6 @@ function get_window_list() {
   tmux list-windows -F "#{window_id}"
 }
 
+function get_pane_list() {
+  tmux list-panes -F "#{pane_id}"
+}
