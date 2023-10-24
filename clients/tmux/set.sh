@@ -18,7 +18,7 @@ if [[ "$(list_file_contains "$SWITCH_SESSION_ID" "$SWITCH_SESSION_LIST_FILE")" =
   add_to_list_file "$SWITCH_SESSION_ID" "$SWITCH_SESSION_LIST_FILE"
 fi
 
-switch --request add --socket-file "$SWITCH_SOCKET_FILE" --app "$SWITCH_APP" --id "$WINDOW_ID" || true
+switch --request set --socket-file "$SWITCH_SOCKET_FILE" --app "$SWITCH_APP" --id "$WINDOW_ID" || true
 add_to_list_file "$WINDOW_ID" "$SWITCH_WINDOW_LIST_FILE"
 
 if [[ ! -f "$SWITCH_WINDOW_PANE_LIST_FILE" ]]; then
