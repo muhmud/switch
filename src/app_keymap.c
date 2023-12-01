@@ -30,7 +30,7 @@ static int update_keymap(int modcode, struct AppNode *node) {
   return 0;
 }
 
-int init_keymap() { return pthread_mutex_init(&keymap_mutex, NULL); }
+int init_keymap(void) { return pthread_mutex_init(&keymap_mutex, NULL); }
 
 int add_app(const char *name, int modcode) {
   struct AppNode *node;
@@ -145,7 +145,7 @@ int restart_app(const char *name) {
   return 0;
 }
 
-void clear_apps() {
+void clear_apps(void) {
   struct AppNode *node, *next;
   int i;
 
@@ -167,5 +167,5 @@ void clear_apps() {
   }
 }
 
-int app_keymap_lock() { return pthread_mutex_lock(&keymap_mutex); }
-int app_keymap_unlock() { return pthread_mutex_unlock(&keymap_mutex); }
+int app_keymap_lock(void) { return pthread_mutex_lock(&keymap_mutex); }
+int app_keymap_unlock(void) { return pthread_mutex_unlock(&keymap_mutex); }

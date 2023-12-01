@@ -174,9 +174,9 @@ static void server_cleanup(int signum) {
   exit(EXIT_SUCCESS);
 }
 
-static void exit_cleanup() { server_cleanup(0); }
+static void exit_cleanup(void) { server_cleanup(0); }
 
-static int server_daemonize() {
+static int server_daemonize(void) {
   int fd;
 
   switch (fork()) {
