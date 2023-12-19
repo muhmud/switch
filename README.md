@@ -48,6 +48,7 @@ After installing the provided scripts to `~/.switch/tmux`, add the following to 
 ```
 # Switch
 set-hook -g pane-focus-in "run-shell 'env SWITCH_MOD_KEY=alt SWITCH_PANE_MOD_KEY=ctrl ~/.switch/tmux/set.sh'"
+set-hook -g after-resize-pane "run-shell 'env SWITCH_MOD_KEY=alt SWITCH_PANE_MOD_KEY=ctrl ~/.switch/tmux/set.sh'"
 set-hook -g window-unlinked "run-shell ~/.switch/tmux/window-delete.sh"
 set-hook -g session-closed "run-shell ~/.switch/tmux/session-delete.sh"
 
