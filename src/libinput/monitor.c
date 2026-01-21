@@ -18,7 +18,6 @@ static const char *modifiers[] = {"KEY_LEFTSHIFT", "KEY_RIGHTSHIFT", "KEY_LEFTCT
 int get_device_paths(const char *device_name, char **paths, int max_paths) {
   FILE *fp;
   char buffer[BUFFER_SIZE];
-  char cmd[BUFFER_SIZE];
   int count = 0;
   int in_target_device = 0;
 
@@ -88,7 +87,7 @@ int handle_event(const char *line, KeyHandlerLibInput mod_press_handler,
   int modcode = 0;
 
   // Check for KEY_RELEASED events
-  if (strstr(line, "released") == NULL) {
+  if (strstr(line, "released") != NULL) {
     is_released = 1;
   }
 
@@ -112,12 +111,6 @@ int handle_event(const char *line, KeyHandlerLibInput mod_press_handler,
   }
 
   return 0;
-}
-
-// Process a modifier release event
-void handle_modifier_release(const char *line) {
-  printf(">>> MODIFIER RELEASED: %s", line);
-  // Add your custom handling here
 }
 
 int start_libinput_child_process(const char *device_name, pid_t *child_pid, int *fd) {
@@ -192,7 +185,6 @@ int start_monitoring_mods_libinput(int fd, KeyHandlerLibInput mod_press_handler,
                                    KeyHandlerLibInput mod_release_handler) {
   FILE *stream;
   char buffer[BUFFER_SIZE];
-  const char *modifier = NULL;
 
   stream = fdopen(fd, "r");
   if (stream == NULL) {
