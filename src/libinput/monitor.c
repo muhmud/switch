@@ -95,13 +95,16 @@ int handle_event(const char *line, KeyHandlerLibInput mod_press_handler,
   for (int i = 0; modifiers[i] != NULL; i++) {
     if (strstr(line, modifiers[i]) != NULL) {
       modcode = convert_libinput_to_modcode(modifiers[i]);
+      break;
     }
   }
 
   if (modcode != 0) {
     if (is_released == 1) {
+      printf("key release for %d", modcode);
       mod_release_handler(modcode);
     } else {
+      printf("key press for %d", modcode);
       mod_press_handler(modcode);
     }
   }
