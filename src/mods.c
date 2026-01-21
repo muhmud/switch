@@ -120,21 +120,21 @@ int convert_libinput_to_modcode(const char *code) {
 
   modcode = -1;
   if (code) {
-    if (strcmp(code, "KEY_LEFTSHIFT")) {
+    if (strcmp(code, "KEY_LEFTSHIFT") == 0) {
       modcode = Shift_L;
-    } else if (strcmp(code, "KEY_RIGHTSHIFT")) {
+    } else if (strcmp(code, "KEY_RIGHTSHIFT") == 0) {
       modcode = Shift_R;
-    } else if (strcmp(code, "KEY_LEFTCTRL")) {
+    } else if (strcmp(code, "KEY_LEFTCTRL") == 0) {
       modcode = Control_L;
-    } else if (strcmp(code, "KEY_RIGHTCTRL")) {
+    } else if (strcmp(code, "KEY_RIGHTCTRL") == 0) {
       modcode = Control_R;
-    } else if (strcmp(code, "KEY_LEFTALT")) {
+    } else if (strcmp(code, "KEY_LEFTALT") == 0) {
       modcode = Alt_L;
-    } else if (strcmp(code, "KEY_RIGHTALT")) {
+    } else if (strcmp(code, "KEY_RIGHTALT") == 0) {
       modcode = Alt_R;
-    } else if (strcmp(code, "KEY_LEFTMETA")) {
+    } else if (strcmp(code, "KEY_LEFTMETA") == 0) {
       modcode = Super_L;
-    } else if (strcmp(code, "KEY_RIGHTMETA")) {
+    } else if (strcmp(code, "KEY_RIGHTMETA") == 0) {
       modcode = Super_R;
     }
   }
