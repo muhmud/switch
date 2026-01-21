@@ -107,6 +107,8 @@ int handle_event(const char *line, KeyHandlerLibInput mod_press_handler,
       printf("key press for %d", modcode);
       mod_press_handler(modcode);
     }
+  } else {
+    printf("some other key: %s", line);
   }
 
   return 0;
