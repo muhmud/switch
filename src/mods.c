@@ -115,6 +115,31 @@ int convert_keysym_to_modcode(unsigned long keysym) {
   return modcode;
 }
 
+int convert_libinput_to_modcode(const char *code) {
+  int modcode;
+
+  modcode = -1;
+  if (code) {
+    if (strcmp(code, "KEY_LEFTSHIFT")) {
+      modcode = Shift_L;
+    } else if (strcmp(code, "KEY_RIGHTSHIFT")) {
+      modcode = Shift_R;
+    } else if (strcmp(code, "KEY_LEFTCTRL")) {
+      modcode = Control_L;
+    } else if (strcmp(code, "KEY_RIGHTCTRL")) {
+      modcode = Control_R;
+    } else if (strcmp(code, "KEY_LEFTALT")) {
+      modcode = Alt_L;
+    } else if (strcmp(code, "KEY_RIGHTALT")) {
+      modcode = Alt_R;
+    } else if (strcmp(code, "KEY_LEFTMETA")) {
+      modcode = Super_L;
+    } else if (strcmp(code, "KEY_RIGHTMETA")) {
+      modcode = Super_R;
+    }
+  }
+}
+
 int convert_string_to_modcode(const char *code) {
   int modcode;
 

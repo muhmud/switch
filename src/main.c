@@ -1,5 +1,7 @@
+#include "bits/getopt_ext.h"
 #include "client.h"
 #include "disp/x11/keys.h"
+#include "libinput/monitor.h"
 #include "mods.h"
 #include "request.h"
 #include "server.h"
@@ -18,6 +20,7 @@ int main(int argc, char *argv[]) {
   int server;
   int daemonize;
   int forward;
+  int use_libinput;
   const char *socket_file;
   const char *request;
   const char *app;
@@ -28,23 +31,30 @@ int main(int argc, char *argv[]) {
   const char *err_msg;
 
   struct option long_options[] = {
-      {"server", no_argument, NULL, 's'},       {"reverse", no_argument, NULL, 'b'},
-      {"daemonize", no_argument, NULL, 'S'},    {"socket-file", required_argument, NULL, 'c'},
-      {"device", required_argument, NULL, 'd'}, {"request", required_argument, NULL, 'r'},
-      {"app", required_argument, NULL, 'a'},    {"mod", required_argument, NULL, 'm'},
-      {"id", required_argument, NULL, 'i'},     {NULL, 0, NULL, 0} // End of options
+      {"server", no_argument, NULL, 's'},
+      {"reverse", no_argument, NULL, 'b'},
+      {"daemonize", no_argument, NULL, 'S'},
+      {"socket-file", required_argument, NULL, 'c'},
+      {"device", required_argument, NULL, 'd'},
+      {"request", required_argument, NULL, 'r'},
+      {"app", required_argument, NULL, 'a'},
+      {"mod", required_argument, NULL, 'm'},
+      {"id", required_argument, NULL, 'i'},
+      {"use-libinput", no_argument, NULL, 'l'},
+      {NULL, 0, NULL, 0} // End of options
   };
 
   server = 0;
   daemonize = 0;
   forward = 1;
+  use_libinput = 0;
   socket_file = DEFAULT_SOCKET_PATH;
   request = NULL;
   app = NULL;
   modcode = NULL;
   id = NULL;
   device = NULL;
-  while ((option = getopt_long(argc, argv, "Ssc:d:ba:m:i:f", long_options, NULL)) != -1) {
+  while ((option = getopt_long(argc, argv, "Ssc:d:ba:m:i:lf", long_options, NULL)) != -1) {
     switch (option) {
     case 's':
       server = 1;
@@ -70,6 +80,9 @@ int main(int argc, char *argv[]) {
     case 'i':
       id = optarg;
       break;
+    case 'l':
+      use_libinput = 1;
+      break;
     case 'b':
       forward = 0;
       break;
@@ -77,7 +90,7 @@ int main(int argc, char *argv[]) {
       fprintf(stderr,
               "Usage: %s\n"
               "         [-s | --server] [-S | --daemonize] [-c | --socket-file <file>] [-d | "
-              "--device <device>] |\n"
+              "--device <device>] [-l | --use-libinput] |\n"
               "         [-r | --request <type>] [-c | --socket-file <file>]\n"
               "         [-a | --app <app>] [-i | --id <id>] [-m | --mod <mod>] [-b | "
               "--reverse]\n",
@@ -87,7 +100,12 @@ int main(int argc, char *argv[]) {
     }
   }
   if (server == 1) {
-    if (device) {
+    if (use_libinput) {
+      if (!device) {
+        fprintf(stderr, "You must specify a device name when using libinput\n");
+        exit(EXIT_FAILURE);
+      }
+    } else if (device) {
       dev = find_device_x11(NULL, device);
       if (!dev) {
         fprintf(stderr, "invalid device\n");
@@ -95,7 +113,7 @@ int main(int argc, char *argv[]) {
       }
       XIFreeDeviceInfo(dev);
     }
-    switch (start_server(socket_file, device, daemonize)) {
+    switch (start_server(socket_file, use_libinput, device, daemonize)) {
     case -1:
       fprintf(stderr, "failed to start server\n");
       exit(EXIT_FAILURE);

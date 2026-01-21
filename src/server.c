@@ -2,6 +2,7 @@
 #include "app.h"
 #include "app_keymap.h"
 #include "disp/x11/keys.h"
+#include "libinput/monitor.h"
 #include "request.h"
 #include <fcntl.h>
 #include <pthread.h>
@@ -12,8 +13,11 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+
+static pid_t child_pid = 0;
 
 int server_fd = -1;
 const char *sock_file = NULL;
@@ -163,6 +167,11 @@ fail:
 }
 
 static void server_cleanup(int signum) {
+  if (child_pid > 0) {
+    kill(child_pid, SIGTERM);
+    waitpid(child_pid, NULL, 0);
+    child_pid = 0;
+  }
   if (server_fd != -1) {
     close(server_fd);
     server_fd = -1;
@@ -214,11 +223,12 @@ static int server_daemonize(void) {
   return 0;
 }
 
-int start_server(const char *socket_file, const char *deviceid, int daemonize) {
+int start_server(const char *socket_file, int use_libinput, const char *deviceid, int daemonize) {
   struct sigaction sa;
   int mutex_initialized;
   int condition_initialized;
   pthread_t client_handler_thread_id;
+  int fd;
   int ret;
 
   if (daemonize && (ret = server_daemonize()) != 0) {
@@ -255,7 +265,15 @@ int start_server(const char *socket_file, const char *deviceid, int daemonize) {
     ret = CLIENT_HANDLER_ERROR;
     goto quit;
   }
-  start_monitoring_mods_x11(deviceid, mod_press_handler, mod_release_handler);
+  if (use_libinput == 1) {
+    if ((ret = start_libinput_child_process(deviceid, &child_pid, &fd)) != 0) {
+      goto quit;
+    }
+    ret = start_monitoring_mods_libinput(fd, mod_press_handler, mod_release_handler);
+    waitpid(child_pid, NULL, 0);
+  } else {
+    ret = start_monitoring_mods_x11(deviceid, mod_press_handler, mod_release_handler);
+  }
 quit:
   if (mutex_initialized == 1) {
     pthread_mutex_destroy(&client_handler_mutex);
