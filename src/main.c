@@ -1,7 +1,5 @@
-#include "bits/getopt_ext.h"
 #include "client.h"
 #include "disp/x11/keys.h"
-#include "libinput/monitor.h"
 #include "mods.h"
 #include "request.h"
 #include "server.h"

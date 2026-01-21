@@ -138,6 +138,7 @@ int convert_libinput_to_modcode(const char *code) {
       modcode = Super_R;
     }
   }
+  return modcode;
 }
 
 int convert_string_to_modcode(const char *code) {
