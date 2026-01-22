@@ -162,7 +162,7 @@ int start_monitoring_mods_libinput(const char *device_name, KeyHandlerLibInput m
       break;
     }
     if (ret == 0) {
-      // Timeout, check if we should continue
+      // Timeout
       continue;
     }
     // Dispatch events
@@ -170,7 +170,6 @@ int start_monitoring_mods_libinput(const char *device_name, KeyHandlerLibInput m
     struct libinput_event *event;
     while ((event = libinput_get_event(li)) != NULL) {
       enum libinput_event_type type = libinput_event_get_type(event);
-      // We only care about keyboard events
       if (type == LIBINPUT_EVENT_KEYBOARD_KEY) {
         struct libinput_event_keyboard *kb_event = libinput_event_get_keyboard_event(event);
 

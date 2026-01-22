@@ -27,27 +27,22 @@ int client_handler_running = 0;
 static int mod_press_handler(int modcode) {
   struct AppNode *node;
 
-  app_keymap_lock();
   node = find_apps_by_modcode(modcode);
   if (!node) {
-    app_keymap_unlock();
     return -1;
   }
   while (node) {
     node->app->pressed = 1;
     node = node->next;
   }
-  app_keymap_unlock();
   return 0;
 }
 
 static int mod_release_handler(int modcode) {
   struct AppNode *node;
 
-  app_keymap_lock();
   node = find_apps_by_modcode(modcode);
   if (!node) {
-    app_keymap_unlock();
     return -1;
   }
   while (node) {
@@ -55,7 +50,6 @@ static int mod_release_handler(int modcode) {
     select_item(node->app);
     node = node->next;
   }
-  app_keymap_unlock();
   return 0;
 }
 
