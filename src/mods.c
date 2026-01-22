@@ -1,5 +1,6 @@
 #include "mods.h"
 #include <X11/keysym.h>
+#include <linux/input-event-codes.h>
 #include <string.h>
 
 struct ModCodes find_modcodes(int modcode) {
@@ -115,28 +116,35 @@ int convert_keysym_to_modcode(unsigned long keysym) {
   return modcode;
 }
 
-int convert_libinput_to_modcode(const char *code) {
+int convert_libinput_to_modcode(uint32_t key) {
   int modcode;
 
   modcode = -1;
-  if (code) {
-    if (strcmp(code, "KEY_LEFTSHIFT") == 0) {
-      modcode = Shift_L;
-    } else if (strcmp(code, "KEY_RIGHTSHIFT") == 0) {
-      modcode = Shift_R;
-    } else if (strcmp(code, "KEY_LEFTCTRL") == 0) {
-      modcode = Control_L;
-    } else if (strcmp(code, "KEY_RIGHTCTRL") == 0) {
-      modcode = Control_R;
-    } else if (strcmp(code, "KEY_LEFTALT") == 0) {
-      modcode = Alt_L;
-    } else if (strcmp(code, "KEY_RIGHTALT") == 0) {
-      modcode = Alt_R;
-    } else if (strcmp(code, "KEY_LEFTMETA") == 0) {
-      modcode = Super_L;
-    } else if (strcmp(code, "KEY_RIGHTMETA") == 0) {
-      modcode = Super_R;
-    }
+  switch (key) {
+  case KEY_LEFTSHIFT:
+    modcode = Shift_L;
+    break;
+  case KEY_RIGHTSHIFT:
+    modcode = Shift_R;
+    break;
+  case KEY_LEFTCTRL:
+    modcode = Control_L;
+    break;
+  case KEY_RIGHTCTRL:
+    modcode = Control_R;
+    break;
+  case KEY_LEFTALT:
+    modcode = Alt_L;
+    break;
+  case KEY_RIGHTALT:
+    modcode = Alt_R;
+    break;
+  case KEY_LEFTMETA:
+    modcode = Super_L;
+    break;
+  case KEY_RIGHTMETA:
+    modcode = Super_R;
+    break;
   }
   return modcode;
 }

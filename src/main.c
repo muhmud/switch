@@ -137,10 +137,10 @@ int main(int argc, char *argv[]) {
     client_request.modcode = convert_string_to_modcode(modcode);
     client_request.forward = forward;
     if (app) {
-      strncpy(client_request.app, app, sizeof(client_request.app));
+      strncpy(client_request.app, app, APP_NAME_SIZE - 1);
     }
     if (id) {
-      strncpy(client_request.id, id, sizeof(client_request.id));
+      strncpy(client_request.id, id, STACK_ITEM_ID_SIZE - 1);
     }
     err_msg = NULL;
     switch (send_request(socket_file, &client_request, &client_response)) {

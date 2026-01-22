@@ -17,8 +17,6 @@
 #include <time.h>
 #include <unistd.h>
 
-static pid_t child_pid = 0;
-
 int server_fd = -1;
 const char *sock_file = NULL;
 
@@ -167,11 +165,6 @@ fail:
 }
 
 static void server_cleanup(int signum) {
-  if (child_pid > 0) {
-    kill(child_pid, SIGTERM);
-    waitpid(child_pid, NULL, 0);
-    child_pid = 0;
-  }
   if (server_fd != -1) {
     close(server_fd);
     server_fd = -1;
@@ -208,7 +201,9 @@ static int server_daemonize(void) {
     _exit(EXIT_SUCCESS);
   }
   umask(0);
-  chdir("/");
+  if (chdir("/") != 0) {
+    return -1;
+  }
   close(STDIN_FILENO);
   fd = open("/dev/null", O_RDWR);
   if (fd != STDIN_FILENO) {
@@ -228,7 +223,6 @@ int start_server(const char *socket_file, int use_libinput, const char *deviceid
   int mutex_initialized;
   int condition_initialized;
   pthread_t client_handler_thread_id;
-  int fd;
   int ret;
 
   if (daemonize && (ret = server_daemonize()) != 0) {
@@ -266,11 +260,7 @@ int start_server(const char *socket_file, int use_libinput, const char *deviceid
     goto quit;
   }
   if (use_libinput == 1) {
-    if ((ret = start_libinput_child_process(deviceid, &child_pid, &fd)) != 0) {
-      goto quit;
-    }
-    ret = start_monitoring_mods_libinput(fd, mod_press_handler, mod_release_handler);
-    waitpid(child_pid, NULL, 0);
+    ret = start_monitoring_mods_libinput(deviceid, mod_press_handler, mod_release_handler);
   } else {
     ret = start_monitoring_mods_x11(deviceid, mod_press_handler, mod_release_handler);
   }

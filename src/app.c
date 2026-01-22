@@ -7,7 +7,7 @@ struct App *new_app(const char *name, int modcode) {
   struct App *app;
 
   app = (struct App *)malloc(sizeof(struct App));
-  strncpy(app->name, name, sizeof(app->name));
+  strncpy(app->name, name, APP_NAME_SIZE - 1);
   app->modcode = modcode;
   app->pressed = 0;
   app->top = app->switching_current = NULL;

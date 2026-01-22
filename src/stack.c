@@ -9,7 +9,7 @@ struct StackItem *new_stack_item(const char *id) {
     return NULL;
   }
   item = (struct StackItem *)malloc(sizeof(struct StackItem));
-  strncpy(item->id, id, sizeof(item->id));
+  strncpy(item->id, id, STACK_ITEM_ID_SIZE - 1);
   item->next = item->prev = NULL;
   return item;
 }

@@ -1,5 +1,9 @@
 #include "monitor.h"
 #include "../mods.h"
+#include <errno.h>
+#include <fcntl.h>
+#include <libinput.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,10 +13,20 @@
 #define MAX_DEVICES 16
 #define BUFFER_SIZE 4096
 
-// Check for common modifier keys
-static const char *modifiers[] = {"KEY_LEFTSHIFT", "KEY_RIGHTSHIFT", "KEY_LEFTCTRL",
-                                  "KEY_RIGHTCTRL", "KEY_LEFTALT",    "KEY_RIGHTALT",
-                                  "KEY_LEFTMETA",  "KEY_RIGHTMETA",  NULL};
+static int open_restricted(const char *path, int flags, void *user_data) {
+  int fd = open(path, flags);
+  if (fd < 0) {
+    fprintf(stderr, "Failed to open %s: %s\n", path, strerror(errno));
+  }
+  return fd < 0 ? -errno : fd;
+}
+
+static void close_restricted(int fd, void *user_data) { close(fd); }
+
+static const struct libinput_interface interface = {
+    .open_restricted = open_restricted,
+    .close_restricted = close_restricted,
+};
 
 // Get device paths for a given device name using libinput list-devices
 int get_device_paths(const char *device_name, char **paths, int max_paths) {
@@ -22,7 +36,7 @@ int get_device_paths(const char *device_name, char **paths, int max_paths) {
   int in_target_device = 0;
 
   // Run libinput list-devices
-  fp = popen("sudo libinput list-devices", "r");
+  fp = popen("libinput list-devices", "r");
   if (fp == NULL) {
     perror("popen");
     return -1;
@@ -81,42 +95,34 @@ int get_device_paths(const char *device_name, char **paths, int max_paths) {
   return count;
 }
 
-int handle_event(const char *line, KeyHandlerLibInput mod_press_handler,
+int handle_event(uint32_t key, enum libinput_key_state state, KeyHandlerLibInput mod_press_handler,
                  KeyHandlerLibInput mod_release_handler) {
   int is_released = 0;
-  int modcode = 0;
+  int modcode;
 
-  // Check for KEY_RELEASED events
-  if (strstr(line, "released") != NULL) {
+  if (state == LIBINPUT_KEY_STATE_RELEASED) {
     is_released = 1;
   }
+  modcode = convert_libinput_to_modcode(key);
 
-  for (int i = 0; modifiers[i] != NULL; i++) {
-    if (strstr(line, modifiers[i]) != NULL) {
-      modcode = convert_libinput_to_modcode(modifiers[i]);
-      break;
-    }
-  }
-
-  if (modcode != 0) {
+  if (modcode != -1) {
     if (is_released == 1) {
-      printf("key release for %d", modcode);
       mod_release_handler(modcode);
     } else {
-      printf("key press for %d", modcode);
       mod_press_handler(modcode);
     }
-  } else {
-    printf("some other key: %s", line);
   }
 
   return 0;
 }
 
-int start_libinput_child_process(const char *device_name, pid_t *child_pid, int *fd) {
-  int pipefd[2];
+int start_monitoring_mods_libinput(const char *device_name, KeyHandlerLibInput mod_press_handler,
+                                   KeyHandlerLibInput mod_release_handler) {
   char *device_paths[MAX_DEVICES];
   int num_devices = 0;
+  struct libinput *li;
+  struct libinput_device *device;
+  struct pollfd fds;
 
   num_devices = get_device_paths(device_name, device_paths, MAX_DEVICES);
   if (num_devices < 0) {
@@ -126,76 +132,55 @@ int start_libinput_child_process(const char *device_name, pid_t *child_pid, int 
     return LIBINPUT_NO_MATCHING_DEVICES;
   }
 
-  if (pipe(pipefd) == -1) {
-    return EXIT_FAILURE;
+  // Create libinput context
+  li = libinput_path_create_context(&interface, NULL);
+  if (!li) {
+    return LIBINPUT_ERROR;
   }
-
-  // Fork process
-  *child_pid = fork();
-  if (*child_pid == -1) {
-    return EXIT_FAILURE;
-  }
-
-  if (*child_pid == 0) {
-    close(pipefd[0]); // Close read end
-
-    // Redirect stdout and stderr to pipe
-    dup2(pipefd[1], STDOUT_FILENO);
-    dup2(pipefd[1], STDERR_FILENO);
-    close(pipefd[1]);
-
-    // Build command arguments with device paths
-    // Args: "sudo" + "libinput" + "debug-events" + "--show-keycodes" +
-    //       (num_devices * 2 for "--device" "path") + NULL
-    int total_args = 4 + (num_devices * 2) + 1;
-    char **args = malloc(total_args * sizeof(char *));
-    if (args == NULL) {
-      perror("malloc");
-      exit(EXIT_FAILURE);
+  // Add all device paths with --device flag
+  for (int i = 0; i < num_devices; i++) {
+    device = libinput_path_add_device(li, device_paths[i]);
+    if (!device) {
+      return LIBINPUT_ERROR;
     }
+  }
 
-    int idx = 0;
-    args[idx++] = "sudo";
-    args[idx++] = "libinput";
-    args[idx++] = "debug-events";
-    args[idx++] = "--show-keycodes";
+  // Set up polling
+  fds.fd = libinput_get_fd(li);
+  fds.events = POLLIN;
+  fds.revents = 0;
 
-    // Add all device paths with --device flag
-    for (int i = 0; i < num_devices; i++) {
-      args[idx++] = "--device";
-      args[idx++] = device_paths[i];
+  // Main event loop
+  while (1) {
+    // Poll for events with timeout
+    int ret = poll(&fds, 1, 100); // 100ms timeout
+    if (ret < 0) {
+      if (errno == EINTR) {
+        continue; // Interrupted by signal, continue
+      }
+      perror("poll");
+      break;
     }
-    args[idx] = NULL;
+    if (ret == 0) {
+      // Timeout, check if we should continue
+      continue;
+    }
+    // Dispatch events
+    libinput_dispatch(li);
+    struct libinput_event *event;
+    while ((event = libinput_get_event(li)) != NULL) {
+      enum libinput_event_type type = libinput_event_get_type(event);
+      // We only care about keyboard events
+      if (type == LIBINPUT_EVENT_KEYBOARD_KEY) {
+        struct libinput_event_keyboard *kb_event = libinput_event_get_keyboard_event(event);
 
-    // Execute libinput command
-    execvp("sudo", args);
+        uint32_t key = libinput_event_keyboard_get_key(kb_event);
+        enum libinput_key_state state = libinput_event_keyboard_get_key_state(kb_event);
 
-    // If execvp returns, an error occurred
-    free(args);
-    exit(EXIT_FAILURE);
+        handle_event(key, state, mod_press_handler, mod_release_handler);
+      }
+      libinput_event_destroy(event);
+    }
   }
-
-  // Parent process
-  close(pipefd[1]); // Close write end
-  *fd = pipefd[0];
-  return 0;
-}
-
-int start_monitoring_mods_libinput(int fd, KeyHandlerLibInput mod_press_handler,
-                                   KeyHandlerLibInput mod_release_handler) {
-  FILE *stream;
-  char buffer[BUFFER_SIZE];
-
-  stream = fdopen(fd, "r");
-  if (stream == NULL) {
-    return EXIT_FAILURE;
-  }
-
-  // Read output line by line
-  while (fgets(buffer, BUFFER_SIZE, stream) != NULL) {
-    handle_event(buffer, mod_press_handler, mod_release_handler);
-  }
-
-  fclose(stream);
   return 0;
 }

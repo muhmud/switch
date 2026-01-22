@@ -4,11 +4,11 @@
 
 #define LIBINPUT_FAILED_TO_LIST_DEVICES 20
 #define LIBINPUT_NO_MATCHING_DEVICES 21
+#define LIBINPUT_ERROR 22
 
 typedef int KeyHandlerLibInput(int);
 
-int start_libinput_child_process(const char *device_name, pid_t *child_pid, int *fd);
-int start_monitoring_mods_libinput(int fd, KeyHandlerLibInput mod_press_handler,
+int start_monitoring_mods_libinput(const char *device_name, KeyHandlerLibInput mod_press_handler,
                                    KeyHandlerLibInput mod_release_handler);
 
 #endif // _SWITCH_LIBINPUT_MONITOR_H_

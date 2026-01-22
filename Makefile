@@ -3,7 +3,7 @@ SRCS := $(shell find src -name "*.c" -not -path "$(MAIN)")
 MAIN_OBJ := $(MAIN:c=o)
 OBJS := $(SRCS:c=o)
 CFLAGS := -Wall
-LDFLAGS := -lX11 -lXi
+LDFLAGS := -lX11 -lXi -linput
 
 GDB := gdb
 TEST_SRCS := $(shell find src/test -name "*.cpp")
