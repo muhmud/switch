@@ -153,7 +153,7 @@ int start_monitoring_mods_libinput(const char *device_name, KeyHandlerLibInput m
   // Main event loop
   while (1) {
     // Poll for events with timeout
-    int ret = poll(&fds, 1, 100); // 100ms timeout
+    int ret = poll(&fds, 1, -1); // 100ms timeout
     if (ret < 0) {
       if (errno == EINTR) {
         continue; // Interrupted by signal, continue
