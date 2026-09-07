@@ -3,6 +3,7 @@
 #include "app_keymap.h"
 #include "disp/x11/keys.h"
 #include "libinput/monitor.h"
+#include "mods.h"
 #include "request.h"
 #include <fcntl.h>
 #include <pthread.h>
@@ -16,6 +17,10 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+
+/* Apps that can share one trigger key; ample in practice, and keeps the
+   duplicate check on the stack. */
+#define MAX_TRIGGER_APPS 32
 
 int server_fd = -1;
 const char *sock_file = NULL;
@@ -53,6 +58,73 @@ static int mod_release_handler(int modcode) {
   return 0;
 }
 
+/* Run an app's command with the chosen id appended, detached so the daemon
+   neither blocks on it nor has to reap it. */
+static void run_exec(const char *exec, const char *id) {
+  char command[APP_EXEC_SIZE + STACK_ITEM_ID_SIZE + 2];
+  pid_t pid;
+
+  if (!exec || !*exec) {
+    return;
+  }
+  snprintf(command, sizeof(command), "%s %s", exec, id);
+  pid = fork();
+  if (pid != 0) {
+    /* Reap the intermediate child immediately; the grandchild is orphaned and
+       reaped by init, so no SIGCHLD handling is needed here. */
+    if (pid > 0) {
+      waitpid(pid, NULL, 0);
+    }
+    return;
+  }
+  if (fork() == 0) {
+    execlp("sh", "sh", "-c", command, (char *)NULL);
+    _exit(127);
+  }
+  _exit(0);
+}
+
+/* A non-modifier key was pressed. Switch any app that is holding its modifier
+   and has this as its trigger key. Shift reverses the direction, matching the
+   usual mod+key / mod+shift+key pairing. */
+static int trigger_handler(unsigned int key, int shifted) {
+  struct AppNode *node;
+  struct App *handled[MAX_TRIGGER_APPS];
+  struct StackItem *item;
+  int count;
+  int modcode;
+  int i;
+  int seen;
+
+  count = 0;
+  app_keymap_lock();
+  for (modcode = 0; modcode <= Hyper_R; modcode++) {
+    node = find_apps_by_modcode(modcode);
+    while (node) {
+      if (node->app->pressed && node->app->key == key && node->app->exec[0]) {
+        /* An app is registered under both its left and right modcodes, so it
+           can be reached twice for one keypress. */
+        seen = 0;
+        for (i = 0; i < count; i++) {
+          if (handled[i] == node->app) {
+            seen = 1;
+            break;
+          }
+        }
+        if (!seen && count < MAX_TRIGGER_APPS) {
+          handled[count++] = node->app;
+          if (switch_item(node->app, shifted ? 0 : 1, &item) == 0) {
+            run_exec(node->app->exec, item->id);
+          }
+        }
+      }
+      node = node->next;
+    }
+  }
+  app_keymap_unlock();
+  return 0;
+}
+
 static int process_client_request(struct ClientRequest *request, struct ClientResponse *response) {
   struct App *app;
   struct StackItem *item;
@@ -64,7 +136,7 @@ static int process_client_request(struct ClientRequest *request, struct ClientRe
   case CLIENT_REQUEST_SHUTDOWN:
     exit(0);
   case CLIENT_REQUEST_ADD_APP:
-    ret = add_app(request->app, request->modcode);
+    ret = add_app(request->app, request->modcode, request->key, request->exec);
     break;
   case CLIENT_REQUEST_DELETE_APP:
     ret = delete_app(request->app);
@@ -254,7 +326,8 @@ int start_server(const char *socket_file, int use_libinput, const char *deviceid
     goto quit;
   }
   if (use_libinput == 1) {
-    ret = start_monitoring_mods_libinput(deviceid, mod_press_handler, mod_release_handler);
+    ret = start_monitoring_mods_libinput(deviceid, mod_press_handler, mod_release_handler,
+                                         trigger_handler);
   } else {
     ret = start_monitoring_mods_x11(deviceid, mod_press_handler, mod_release_handler);
   }

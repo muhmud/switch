@@ -96,7 +96,12 @@ int get_device_paths(const char *device_name, char **paths, int max_paths) {
 }
 
 int handle_event(uint32_t key, enum libinput_key_state state, KeyHandlerLibInput mod_press_handler,
-                 KeyHandlerLibInput mod_release_handler) {
+                 KeyHandlerLibInput mod_release_handler,
+                 TriggerHandlerLibInput trigger_handler) {
+  /* Shift is tracked here rather than through the app modcodes: it is usually
+     nobody's switching modifier, but it is what distinguishes a forward switch
+     from a reverse one. */
+  static int shift_held = 0;
   int is_released = 0;
   int modcode;
 
@@ -106,18 +111,27 @@ int handle_event(uint32_t key, enum libinput_key_state state, KeyHandlerLibInput
   modcode = convert_libinput_to_modcode(key);
 
   if (modcode != -1) {
+    if (modcode == Shift_L || modcode == Shift_R || modcode == Shift) {
+      shift_held = !is_released;
+    }
     if (is_released == 1) {
       mod_release_handler(modcode);
     } else {
       mod_press_handler(modcode);
     }
+  } else if (is_released == 0 && trigger_handler) {
+    /* An ordinary key. Previously dropped; the daemon now offers it up so an
+       app with a trigger key can be switched without the application having to
+       bind anything. */
+    trigger_handler(key, shift_held);
   }
 
   return 0;
 }
 
 int start_monitoring_mods_libinput(const char *device_name, KeyHandlerLibInput mod_press_handler,
-                                   KeyHandlerLibInput mod_release_handler) {
+                                   KeyHandlerLibInput mod_release_handler,
+                                   TriggerHandlerLibInput trigger_handler) {
   char *device_paths[MAX_DEVICES];
   int num_devices = 0;
   struct libinput *li;
@@ -176,7 +190,7 @@ int start_monitoring_mods_libinput(const char *device_name, KeyHandlerLibInput m
         uint32_t key = libinput_event_keyboard_get_key(kb_event);
         enum libinput_key_state state = libinput_event_keyboard_get_key_state(kb_event);
 
-        handle_event(key, state, mod_press_handler, mod_release_handler);
+        handle_event(key, state, mod_press_handler, mod_release_handler, trigger_handler);
       }
       libinput_event_destroy(event);
     }

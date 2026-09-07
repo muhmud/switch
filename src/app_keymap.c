@@ -32,7 +32,7 @@ static int update_keymap(int modcode, struct AppNode *node) {
 
 int init_keymap(void) { return pthread_mutex_init(&keymap_mutex, NULL); }
 
-int add_app(const char *name, int modcode) {
+int add_app(const char *name, int modcode, unsigned int key, const char *exec) {
   struct AppNode *node;
   struct ModCodes modcodes;
 
@@ -43,7 +43,7 @@ int add_app(const char *name, int modcode) {
   if (modcodes.left == -1 && modcodes.right == -1) {
     return -1;
   }
-  node = new_app_node(new_app(name, modcode));
+  node = new_app_node(new_app(name, modcode, key, exec));
   if (update_keymap(modcodes.left, node) == -1 || update_keymap(modcodes.right, node) == -1) {
     return -1;
   }

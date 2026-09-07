@@ -17,8 +17,11 @@ struct ClientRequest {
   int request;
   int modcode;
   int forward;
+  /* Optional trigger key and command for add-app; see struct App. */
+  unsigned int key;
   char app[APP_NAME_SIZE];
   char id[STACK_ITEM_ID_SIZE];
+  char exec[APP_EXEC_SIZE];
 };
 
 struct ClientResponse {

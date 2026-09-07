@@ -66,6 +66,24 @@ The id of the window to associate with the request
 .B "-m, --mod [MOD]"
 The modifier key to associate with the request
 .TP
+.B "-k, --key [KEY]"
+With
+.BR add-app ,
+an ordinary key that, held together with the modifier, makes the daemon switch
+this app itself rather than waiting for a
+.B switch
+request. Requires
+.BR --exec ,
+and only takes effect with
+.BR --use-libinput .
+Adding shift reverses the direction.
+.TP
+.B "-e, --exec [COMMAND]"
+With
+.BR add-app ,
+the command run for each step of a self-driven switch. The chosen id is
+appended as a final argument.
+.TP
 .B "-b, --reverse"
 Whether switching should be requested in reverse stack order
 

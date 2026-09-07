@@ -15,6 +15,34 @@ adjust its window stack accordingly, i.e. by moving the selected window to the t
 As well as the background switch process, a plugin is also required for the application being used, and this
 repo contains such client plugins for `vim`/`nvim` and `tmux`.
 
+## Self-driven switching
+
+Normally the application binds the switching key and calls back in, e.g. tmux
+binds `M-a` to a script that runs `switch --request switch` and then selects
+the window it names. That requires the application to be able to run a command
+on a keypress.
+
+An app can instead give `add-app` a trigger key and a command, and the daemon
+will do the whole thing itself — it already sees every key on the input device,
+not just the modifiers:
+
+```bash
+$ switch --request add-app --app zellij-main --mod alt \
+    --key a --exec "/path/to/focus-tab.sh main"
+```
+
+Holding `alt` and pressing `a` then walks the MRU stack, running
+`focus-tab.sh main <id>` for each step; adding `shift` walks back. Releasing
+`alt` commits the selection, as it always did.
+
+This suits applications that cannot run a command without a visible side
+effect. Zellij is the motivating case: its keybindings can only launch a
+command in a new pane, so a binding-driven trigger flashes a pane on screen
+every time. See the `switch-zellij` client.
+
+Only the libinput backend (`--use-libinput`) watches trigger keys; under X11
+`--key` is accepted but never fires.
+
 # Install
 
 First, build and deploy this project:

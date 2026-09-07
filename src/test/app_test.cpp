@@ -7,7 +7,7 @@
 #define BOTTOM "bottom"
 
 TEST(AppTest, new_app) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_STREQ(app->name, TEST_APP);
   EXPECT_EQ(app->modcode, Alt);
@@ -17,7 +17,7 @@ TEST(AppTest, new_app) {
 }
 
 TEST(AppTest, add_item) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), TOP), 0);
   EXPECT_TRUE(app->top);
@@ -25,7 +25,7 @@ TEST(AppTest, add_item) {
 }
 
 TEST(AppTest, add_item_two_items) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), TOP), 0);
@@ -40,7 +40,7 @@ TEST(AppTest, add_item_two_items) {
 }
 
 TEST(AppTest, add_item_three_items) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -63,7 +63,7 @@ TEST(AppTest, add_item_three_items) {
 }
 
 TEST(AppTest, set_item) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -76,7 +76,7 @@ TEST(AppTest, set_item) {
 }
 
 TEST(AppTest, set_item_new) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -91,7 +91,7 @@ TEST(AppTest, set_item_new) {
 }
 
 TEST(AppTest, set_item_switching) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), TOP), 0);
@@ -107,7 +107,7 @@ TEST(AppTest, set_item_switching) {
 }
 
 TEST(AppTest, set_item_switching_new) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -125,7 +125,7 @@ TEST(AppTest, set_item_switching_new) {
 }
 
 TEST(AppTest, switch_item) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -147,7 +147,7 @@ TEST(AppTest, switch_item) {
 }
 
 TEST(AppTest, switch_item_reverse) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -172,12 +172,12 @@ TEST(AppTest, switch_item_invalid) {
   StackItem *item;
   EXPECT_EQ(switch_item(NULL, 1, &item), -1);
 
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
   EXPECT_EQ(switch_item(app.get(), 1, &item), -1);
 }
 
 TEST(AppTest, select_item_not_switching) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -192,7 +192,7 @@ TEST(AppTest, select_item_not_switching) {
 TEST(AppTest, select_item_invalid) { EXPECT_EQ(select_item(NULL), -1); }
 
 TEST(AppTest, delete_item) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -207,7 +207,7 @@ TEST(AppTest, delete_item) {
 }
 
 TEST(AppTest, delete_item_middle) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);
@@ -222,7 +222,7 @@ TEST(AppTest, delete_item_middle) {
 }
 
 TEST(AppTest, delete_item_bottom) {
-  auto app = allocate(new_app(TEST_APP, Alt));
+  auto app = allocate(new_app(TEST_APP, Alt, 0, NULL));
 
   EXPECT_EQ(add_item(app.get(), BOTTOM), 0);
   EXPECT_EQ(add_item(app.get(), MIDDLE), 0);

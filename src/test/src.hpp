@@ -4,6 +4,11 @@
 #include <memory>
 
 // Source headers
+/* atomic_int, as used by struct App, must come from <atomic> in C++ — and from
+   outside the extern "C" block, since it is a template. */
+#include <atomic>
+using std::atomic_int;
+
 extern "C" {
 #include "../app.h"
 #include "../app_keymap.h"

@@ -33,4 +33,9 @@ int convert_string_to_modcode(const char *code);
 int is_mod_key(unsigned long keysym);
 int is_valid_mod_key(int modcode);
 
+/* Convert a trigger key name ("a", "7", "tab", "space", ...) to its evdev
+   keycode, or -1 when unrecognised. Trigger keys are ordinary keys, not
+   modifiers, so they are numbered separately from the modcodes above. */
+int convert_string_to_keycode(const char *name);
+
 #endif // _SWITCH_MODS_H_

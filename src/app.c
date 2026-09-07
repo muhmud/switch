@@ -3,12 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct App *new_app(const char *name, int modcode) {
+struct App *new_app(const char *name, int modcode, unsigned int key, const char *exec) {
   struct App *app;
 
   app = (struct App *)malloc(sizeof(struct App));
+  memset(app, 0, sizeof(struct App));
   strncpy(app->name, name, APP_NAME_SIZE - 1);
   app->modcode = modcode;
+  app->key = key;
+  if (exec) {
+    strncpy(app->exec, exec, APP_EXEC_SIZE - 1);
+  }
   app->pressed = 0;
   app->top = app->switching_current = NULL;
   return app;

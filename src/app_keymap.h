@@ -10,7 +10,7 @@ struct AppNode {
 
 int init_app_keymap(void);
 
-int add_app(const char* app, int modcode);
+int add_app(const char *app, int modcode, unsigned int key, const char *exec);
 struct App* find_app(const char *app);
 struct AppNode *find_apps_by_modcode(int modcode);
 int delete_app(const char *app);

@@ -25,6 +25,9 @@ int main(int argc, char *argv[]) {
   const char *modcode;
   const char *id;
   const char *device;
+  const char *key;
+  const char *exec;
+  int keycode;
   int option;
   const char *err_msg;
 
@@ -39,6 +42,8 @@ int main(int argc, char *argv[]) {
       {"mod", required_argument, NULL, 'm'},
       {"id", required_argument, NULL, 'i'},
       {"use-libinput", no_argument, NULL, 'l'},
+      {"key", required_argument, NULL, 'k'},
+      {"exec", required_argument, NULL, 'e'},
       {NULL, 0, NULL, 0} // End of options
   };
 
@@ -52,7 +57,9 @@ int main(int argc, char *argv[]) {
   modcode = NULL;
   id = NULL;
   device = NULL;
-  while ((option = getopt_long(argc, argv, "Ssc:d:ba:m:i:lf", long_options, NULL)) != -1) {
+  key = NULL;
+  exec = NULL;
+  while ((option = getopt_long(argc, argv, "Ssc:d:ba:m:i:lfk:e:", long_options, NULL)) != -1) {
     switch (option) {
     case 's':
       server = 1;
@@ -84,6 +91,12 @@ int main(int argc, char *argv[]) {
     case 'b':
       forward = 0;
       break;
+    case 'k':
+      key = optarg;
+      break;
+    case 'e':
+      exec = optarg;
+      break;
     case '?':
       fprintf(stderr,
               "Usage: %s\n"
@@ -91,7 +104,8 @@ int main(int argc, char *argv[]) {
               "--device <device>] [-l | --use-libinput] |\n"
               "         [-r | --request <type>] [-c | --socket-file <file>]\n"
               "         [-a | --app <app>] [-i | --id <id>] [-m | --mod <mod>] [-b | "
-              "--reverse]\n",
+              "--reverse]\n"
+              "         [-k | --key <key>] [-e | --exec <command>]\n",
               argv[0]);
     default:
       exit(EXIT_FAILURE);
@@ -136,6 +150,19 @@ int main(int argc, char *argv[]) {
     client_request.request = convert_string_to_request(request);
     client_request.modcode = convert_string_to_modcode(modcode);
     client_request.forward = forward;
+    if (key) {
+      /* A trigger key lets the daemon complete the switch itself, so the
+         application does not have to bind the key or call back in. */
+      keycode = convert_string_to_keycode(key);
+      if (keycode == -1) {
+        fprintf(stderr, "invalid key: %s\n", key);
+        exit(EXIT_FAILURE);
+      }
+      client_request.key = (unsigned int)keycode;
+    }
+    if (exec) {
+      strncpy(client_request.exec, exec, APP_EXEC_SIZE - 1);
+    }
     if (app) {
       strncpy(client_request.app, app, APP_NAME_SIZE - 1);
     }
