@@ -198,8 +198,11 @@ int main(int argc, char *argv[]) {
     if (client_request.request == CLIENT_REQUEST_SWITCH ||
         client_request.request == CLIENT_REQUEST_GET_TOP) {
       fprintf(stdout, "%s\n", client_response.id);
-      exit(EXIT_SUCCESS);
     }
+    /* Reaching here means the server processed the request: every request type
+       reports success, not just the two that print an id. */
+    exit(EXIT_SUCCESS);
   }
+  /* Neither a server nor a request: nothing was asked of us. */
   return EXIT_FAILURE;
 }

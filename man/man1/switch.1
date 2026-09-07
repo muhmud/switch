@@ -87,6 +87,16 @@ appended as a final argument.
 .B "-b, --reverse"
 Whether switching should be requested in reverse stack order
 
+.SH EXIT STATUS
+.TP
+.B 0
+The request was processed, or the server started.
+.TP
+.B non-zero
+The request could not be sent or the server rejected it, or no request and no
+.B --server
+was given.
+
 .SH SERVER
 
 A server can be used as a single, central process for all applications, with
